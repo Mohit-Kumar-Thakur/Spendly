@@ -76,12 +76,17 @@
 }
 
 .hero-btn {
+    display: inline-block;
     background: #111111;
     color: #ffffff;
+    font-family: var(--font-body);
     font-size: 1.02rem;
     font-weight: 600;
+    line-height: 1.6;
     padding: 0.95rem 1.9rem;
+    border: none;
     border-radius: 10px;
+    cursor: pointer;
     transition: background 0.2s;
 }
 
@@ -238,4 +243,71 @@
     .hero-dash { padding: 1rem; }
 
     .hero-bar-label { flex-basis: 3.5rem; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Video modal                                                         */
+/* ------------------------------------------------------------------ */
+
+.video-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(15, 15, 15, 0.78);
+}
+
+.video-modal[hidden] { display: none; }
+
+.video-modal-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #000000;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.video-modal-frame {
+    position: relative;
+    padding-top: 56.25%; /* 16:9 */
+}
+
+.video-modal-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.video-modal-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 1;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 15, 15, 0.65);
+    color: #ffffff;
+    font-family: var(--font-body);
+    font-size: 1.6rem;
+    line-height: 1;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.video-modal-close:hover { background: rgba(15, 15, 15, 0.9); }
+
+@media (max-width: 600px) {
+    .video-modal { padding: 1rem; }
 }

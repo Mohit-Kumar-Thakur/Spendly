@@ -28,7 +28,7 @@
 
         <div class="hero-cta">
             <a href="{{ url_for('register') }}" class="hero-btn">Create free account</a>
-            <a href="#features" class="hero-btn">See how it works</a>
+            <button type="button" class="hero-btn" id="video-modal-open">See how it works</button>
         </div>
     </div>
 
@@ -109,4 +109,66 @@
     </div>
 </section>
 
+<!-- "See how it works" video modal.
+     data-src is a placeholder clip — swap the embed URL when the real one exists.
+     The iframe src is set on open and cleared on close, which is what stops playback. -->
+<div class="video-modal" id="video-modal" role="dialog" aria-modal="true" aria-label="How Spendly works" hidden>
+    <div class="video-modal-dialog">
+        <button type="button" class="video-modal-close" id="video-modal-close" aria-label="Close video">&times;</button>
+        <div class="video-modal-frame">
+            <iframe
+                id="video-modal-iframe"
+                data-src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?rel=0&autoplay=1"
+                title="How Spendly works"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var modal = document.getElementById('video-modal');
+    var iframe = document.getElementById('video-modal-iframe');
+    var openBtn = document.getElementById('video-modal-open');
+    var closeBtn = document.getElementById('video-modal-close');
+
+    if (!modal || !iframe || !openBtn || !closeBtn) return;
+
+    var lastFocused = null;
+
+    function openModal() {
+        lastFocused = document.activeElement;
+        iframe.src = iframe.getAttribute('data-src');
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        // Removing the src tears down the player, so audio stops immediately.
+        // (Setting src='' would reload the current page inside the frame.)
+        iframe.removeAttribute('src');
+        document.body.style.overflow = '';
+        if (lastFocused) lastFocused.focus();
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+
+    // Click on the backdrop (but not inside the dialog) closes.
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.hidden) closeModal();
+    });
+})();
+</script>
 {% endblock %}
