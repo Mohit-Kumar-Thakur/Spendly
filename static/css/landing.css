@@ -1,0 +1,241 @@
+/* ------------------------------------------------------------------ */
+/* Landing hero                                                        */
+/* Loaded after style.css, so these rules override the base hero.      */
+/* ------------------------------------------------------------------ */
+
+.hero {
+    --hero-green: #35835b;
+    --hero-green-soft: #dcf3e6;
+    --hero-orange: #e9a33c;
+    --hero-blue: #4a8fd6;
+    --hero-purple: #7d6ad6;
+    --hero-track: #eceae5;
+    --hero-panel: #f7f6f3;
+    --hero-panel-border: #e6e3dd;
+
+    display: block;
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 4.5rem 2rem 5rem;
+    text-align: center;
+}
+
+/* --- Intro ---------------------------------------------------------- */
+
+.hero-intro {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: var(--hero-green-soft);
+    color: var(--hero-green);
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 0.5rem 1.1rem;
+    border-radius: 999px;
+    margin-bottom: 2.5rem;
+}
+
+.hero-pill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--hero-green);
+}
+
+.hero-heading {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: clamp(2.25rem, 5.4vw, 3.9rem);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    margin-bottom: 1.5rem;
+}
+
+.hero-heading-accent { color: var(--hero-green); }
+
+.hero-lede {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #5e5e5e;
+    max-width: 620px;
+    margin: 0 auto 2.5rem;
+}
+
+.hero-cta {
+    display: flex;
+    justify-content: center;
+    gap: 1.35rem;
+}
+
+.hero-btn {
+    background: #111111;
+    color: #ffffff;
+    font-size: 1.02rem;
+    font-weight: 600;
+    padding: 0.95rem 1.9rem;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.hero-btn:hover { background: #2d2d2d; }
+
+/* --- Dashboard panel ------------------------------------------------ */
+
+.hero-dash {
+    background: var(--hero-panel);
+    border: 1px solid var(--hero-panel-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 4.5rem;
+    text-align: left;
+}
+
+.hero-dash-dots {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding-left: 0.35rem;
+}
+
+.hero-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+}
+
+.hero-dot-red { background: #e78b8b; }
+.hero-dot-amber { background: #e9c46a; }
+.hero-dot-green { background: #8ed0ae; }
+
+/* --- Stat cards ----------------------------------------------------- */
+
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.hero-stat {
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid var(--hero-panel-border);
+    border-radius: 10px;
+    padding: 1.35rem 1.5rem;
+}
+
+.hero-stat-label {
+    font-size: 0.95rem;
+    color: #8a8a8a;
+    margin-bottom: 0.5rem;
+}
+
+.hero-stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+}
+
+.hero-stat-note {
+    font-size: 0.9rem;
+    color: #9a9a9a;
+}
+
+.hero-note-red { color: #c0392b; }
+.hero-note-green { color: #2f8159; }
+
+/* --- Category bars -------------------------------------------------- */
+
+.hero-bars {
+    background: #ffffff;
+    border: 1px solid var(--hero-panel-border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.hero-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.hero-bar-label {
+    flex: 0 0 4.5rem;
+    text-align: right;
+    font-size: 0.95rem;
+    color: #444444;
+}
+
+.hero-bar-track {
+    flex: 1;
+    height: 9px;
+    background: var(--hero-track);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.hero-bar {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.hero-bar-food { background: var(--hero-orange); }
+.hero-bar-travel { background: var(--hero-blue); }
+.hero-bar-bills { background: var(--hero-purple); }
+
+/* --- Responsive ----------------------------------------------------- */
+
+@media (max-width: 900px) {
+    .hero {
+        display: block;
+        grid-template-columns: none;
+        padding: 3.5rem 1.5rem 4rem;
+    }
+
+    .hero-dash { margin-top: 3.5rem; }
+
+    .hero-stats {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero { padding: 2.5rem 1rem 3rem; }
+
+    .hero-pill {
+        font-size: 0.85rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .hero-lede {
+        font-size: 1.02rem;
+        margin-bottom: 2rem;
+    }
+
+    .hero-cta {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.85rem;
+    }
+
+    .hero-btn { text-align: center; }
+
+    .hero-dash { padding: 1rem; }
+
+    .hero-bar-label { flex-basis: 3.5rem; }
+}
