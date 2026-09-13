@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="legal">
+    <div class="legal-inner">
+
+        <div class="legal-header">
+            <div class="legal-badge">Legal</div>
+            <h1 class="legal-title">Privacy <em>Policy</em></h1>
+            <p class="legal-updated">Last updated: 13 September 2026</p>
+        </div>
+
+        <div class="legal-card">
+            <p class="legal-intro">
+                Spendly records how you spend your money, so we take the privacy of
+                that information seriously. This policy explains what we collect,
+                why we collect it, and the choices you have over your own data.
+            </p>
+
+            <h2 class="legal-heading"><span class="legal-num">01</span>Data We Collect</h2>
+            <p class="legal-body">
+                We collect the account details you provide when you register, such
+                as your name and email address, together with a securely hashed
+                version of your password. We never store your password in a
+                readable form.
+            </p>
+            <p class="legal-body">
+                We also store the expense records you choose to enter — the amount,
+                category, date and any description you add. Beyond that, we keep
+                basic technical information such as the time of your last sign-in,
+                which helps us keep your account secure. We do not ask for or store
+                bank account numbers, card details or other payment credentials.
+            </p>
+
+            <h2 class="legal-heading"><span class="legal-num">02</span>How We Use Your Data</h2>
+            <p class="legal-body">
+                Your data is used to operate the service and nothing more:
+                authenticating you at sign-in, saving your expenses, and generating
+                the summaries, category breakdowns and date-range views that make
+                the app useful.
+            </p>
+            <p class="legal-body">
+                We do not sell your personal or financial information, and we do not
+                use your expense records to build advertising profiles or share them
+                with advertisers. We may use aggregated, anonymised statistics that
+                cannot identify you to understand how the service is performing.
+            </p>
+
+            <h2 class="legal-heading"><span class="legal-num">03</span>Data Storage</h2>
+            <p class="legal-body">
+                Your account and expense records are stored in the application's
+                database and kept for as long as your account remains active. You
+                can edit or delete individual expenses at any time, and deleting
+                your account removes your associated records.
+            </p>
+            <p class="legal-body">
+                We take reasonable technical measures to protect your information
+                against unauthorised access, including password hashing and
+                restricted access to the underlying data. No method of electronic
+                storage is completely secure, however, so we cannot guarantee
+                absolute security and encourage you to use a strong, unique
+                password.
+            </p>
+
+            <h2 class="legal-heading"><span class="legal-num">04</span>Third Party Services</h2>
+            <p class="legal-body">
+                Spendly keeps external dependencies to a minimum. The application
+                loads its typefaces from Google Fonts, which means your browser
+                contacts Google's servers to fetch those files; that request is
+                handled under Google's own privacy policy and carries no expense
+                data.
+            </p>
+            <p class="legal-body">
+                We do not integrate advertising networks or third-party analytics
+                trackers, and we do not pass your expense records to any outside
+                service. If we ever rely on a hosting or infrastructure provider to
+                run the application, they may process data strictly on our behalf
+                and only as needed to keep the service running. We may disclose
+                information where we are legally required to do so.
+            </p>
+
+            <h2 class="legal-heading"><span class="legal-num">05</span>Your Choices</h2>
+            <p class="legal-body">
+                You can review and update your account details from within the
+                application, correct or remove any expense you have logged, and
+                close your account if you no longer wish to use Spendly. Depending
+                on where you live, you may also have the right to request a copy of
+                your data or ask us to delete it.
+            </p>
+
+            <h2 class="legal-heading"><span class="legal-num">06</span>Changes to This Policy</h2>
+            <p class="legal-body">
+                We may update this Privacy Policy as the service develops. When we
+                do, we will revise the "last updated" date shown at the top of this
+                page, and significant changes may also be communicated within the
+                application.
+            </p>
+
+            <h2 class="legal-heading"><span class="legal-num">07</span>Contact Us</h2>
+            <p class="legal-body">
+                If you have questions about this policy or about how your
+                information is handled, please get in touch through the contact
+                details provided in the application. Our
+                <a href="{{ url_for('terms') }}">Terms and Conditions</a> cover the
+                rest of your relationship with Spendly.
+            </p>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
