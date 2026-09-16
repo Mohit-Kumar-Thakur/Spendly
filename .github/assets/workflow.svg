@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1100 200" width="1100" height="200" role="img" aria-label="Workflow: spec, plan, branch, verify, merge">
+  <title>The loop: spec to plan to branch to verify to merge</title>
+  <defs>
+    <linearGradient id="wbg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0B1220"/>
+      <stop offset="100%" stop-color="#101B2C"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#2B3C56"/>
+    </marker>
+    <path id="track" d="M110 100 H990"/>
+  </defs>
+
+  <rect width="1100" height="200" rx="12" fill="url(#wbg)"/>
+
+  <line x1="110" y1="100" x2="990" y2="100" stroke="#2B3C56" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- travelling pulse -->
+  <circle r="7" fill="#22D3EE">
+    <animateMotion dur="6s" repeatCount="indefinite">
+      <mpath href="#track" xlink:href="#track"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="0;1;1;1;0" dur="6s" repeatCount="indefinite"/>
+  </circle>
+  <circle r="14" fill="#22D3EE" opacity="0.25">
+    <animateMotion dur="6s" repeatCount="indefinite">
+      <mpath href="#track" xlink:href="#track"/>
+    </animateMotion>
+    <animate attributeName="r" values="10;20;10" dur="1.4s" repeatCount="indefinite"/>
+  </circle>
+
+  <g font-family="DM Sans, Segoe UI, Helvetica, Arial, sans-serif" text-anchor="middle">
+    <g>
+      <circle cx="110" cy="100" r="30" fill="#152134" stroke="#34D399" stroke-width="2">
+        <animate attributeName="stroke-width" values="2;5;2" dur="6s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <text x="110" y="107" font-size="22" fill="#34D399">1</text>
+      <text x="110" y="160" font-size="16" fill="#8FA3C0">Spec</text>
+    </g>
+    <g>
+      <circle cx="330" cy="100" r="30" fill="#152134" stroke="#34D399" stroke-width="2">
+        <animate attributeName="stroke-width" values="2;5;2" dur="6s" begin="1.2s" repeatCount="indefinite"/>
+      </circle>
+      <text x="330" y="107" font-size="22" fill="#34D399">2</text>
+      <text x="330" y="160" font-size="16" fill="#8FA3C0">Plan</text>
+    </g>
+    <g>
+      <circle cx="550" cy="100" r="30" fill="#152134" stroke="#34D399" stroke-width="2">
+        <animate attributeName="stroke-width" values="2;5;2" dur="6s" begin="2.4s" repeatCount="indefinite"/>
+      </circle>
+      <text x="550" y="107" font-size="22" fill="#34D399">3</text>
+      <text x="550" y="160" font-size="16" fill="#8FA3C0">Branch</text>
+    </g>
+    <g>
+      <circle cx="770" cy="100" r="30" fill="#152134" stroke="#34D399" stroke-width="2">
+        <animate attributeName="stroke-width" values="2;5;2" dur="6s" begin="3.6s" repeatCount="indefinite"/>
+      </circle>
+      <text x="770" y="107" font-size="22" fill="#34D399">4</text>
+      <text x="770" y="160" font-size="16" fill="#8FA3C0">Verify</text>
+    </g>
+    <g>
+      <circle cx="990" cy="100" r="30" fill="#152134" stroke="#22D3EE" stroke-width="2">
+        <animate attributeName="stroke-width" values="2;5;2" dur="6s" begin="4.8s" repeatCount="indefinite"/>
+      </circle>
+      <text x="990" y="107" font-size="22" fill="#22D3EE">5</text>
+      <text x="990" y="160" font-size="16" fill="#8FA3C0">Merge</text>
+    </g>
+  </g>
+
+  <text x="550" y="42" font-family="JetBrains Mono, Consolas, monospace" font-size="14" fill="#4C6285" text-anchor="middle">every feature takes the same five steps</text>
+</svg>
