@@ -1,6 +1,14 @@
-from flask import Flask, render_template
+import sqlite3
 
-from database.db import get_db, init_db, seed_db
+from flask import Flask, redirect, render_template, request, url_for
+
+from database.db import (
+    create_user,
+    get_db,
+    get_user_by_email,
+    init_db,
+    seed_db,
+)
 
 app = Flask(__name__)
 
@@ -19,14 +27,50 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    if request.method == "GET":
+        return render_template("register.html")
+
+    # Normalise what we store, but never touch the password itself.
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+
+    # First failure wins, so the user fixes one thing at a time.
+    error = None
+    if not name:
+        error = "Please enter your name."
+    elif not email or "@" not in email:
+        error = "Please enter a valid email address."
+    elif len(password) < 8:
+        error = "Password must be at least 8 characters."
+    elif get_user_by_email(email):
+        error = "An account with that email already exists."
+
+    if error is None:
+        try:
+            create_user(name, email, password)
+        except sqlite3.IntegrityError:
+            # Another request claimed this email between the check above
+            # and the insert. Same message, no 500.
+            error = "An account with that email already exists."
+
+    if error:
+        # Hand back name and email so the form stays filled in.
+        # The password is never echoed.
+        return render_template("register.html", error=error,
+                               name=name, email=email)
+
+    # POST/redirect/GET so a refresh cannot submit twice.
+    return redirect(url_for("login", registered=1))
 
 
 @app.route("/login")
 def login():
-    return render_template("login.html")
+    # Set by the redirect out of /register. Sessions arrive in Step 3.
+    return render_template("login.html",
+                           success=request.args.get("registered"))
 
 
 @app.route("/terms")
