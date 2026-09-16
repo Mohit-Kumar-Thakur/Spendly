@@ -146,6 +146,25 @@ def create_user(name, email, password):
         conn.close()
 
 
+def get_user_by_id(user_id):
+    """Return the user row for this id, or None.
+
+    Runs on every request to resolve the session cookie, so it leaves
+    password_hash out — nothing that greets a user by name needs it.
+    None means the session points at a user who no longer exists.
+    """
+    conn = get_db()
+    try:
+        return conn.execute(
+            """SELECT id, name, email
+                 FROM users
+                WHERE id = ?""",
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     init_db()
     seed_db()

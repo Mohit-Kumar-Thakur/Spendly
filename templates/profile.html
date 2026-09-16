@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="auth-section">
+    <div class="auth-container">
+
+        <div class="auth-header">
+            <h1 class="auth-title">Hello, {{ current_user["name"] }}</h1>
+            <p class="auth-subtitle">You're signed in as {{ current_user["email"] }}</p>
+        </div>
+
+        <div class="auth-card">
+            <p>Your profile lands in Step 4. For now this page exists to prove
+               the session works — you can only see it while signed in.</p>
+        </div>
+
+        <p class="auth-switch">
+            Done for now? <a href="{{ url_for('logout') }}">Sign out</a>
+        </p>
+
+    </div>
+</section>
+
+{% endblock %}

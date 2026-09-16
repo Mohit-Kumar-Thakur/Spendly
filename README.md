@@ -28,7 +28,7 @@
 > its own branch, and lands through a pull request.
 
 <div align="center">
-<img src=".github/assets/progress.svg" alt="Build progress: 2 of 9 steps complete" width="100%">
+<img src=".github/assets/progress.svg" alt="Build progress: 3 of 9 steps complete" width="100%">
 </div>
 
 ---
@@ -270,8 +270,8 @@ Spendly/
 | :---: | :--- | :---: |
 | **1** | Database setup — schema, connection helper, seed data | ✅ **Done** |
 | **2** | Registration | ✅ **Done** |
-| **3** | Login / logout | ⬜ Next |
-| **4** | Profile page | ⬜ |
+| **3** | Login / logout | ✅ **Done** |
+| **4** | Profile page | ⬜ Next |
 | **5** | Dashboard | ⬜ |
 | **6** | Expense list | ⬜ |
 | **7** | Add expense | ⬜ |
@@ -326,6 +326,34 @@ box below was exercised, not assumed:
 
 Deliberately **not** in this step: sessions, `SECRET_KEY`, and any logged-in state. Those are
 Step 3, and registration ends at the login page on purpose.
+
+</details>
+
+<details>
+<summary><b>✅ Step 3 — what "done" actually meant</b></summary>
+
+<br>
+
+The hinge of the roadmap: the app can finally answer "who is asking?". Every box below was
+exercised, not assumed:
+
+- [x] `POST /login` with the demo credentials returns `302` to `/profile` with a
+      `Set-Cookie: session=...; HttpOnly`
+- [x] `DEMO@Spendly.com` signs in — casing normalised the same way Step 2 stored it
+- [x] A wrong password and an unregistered email return responses that are **identical** once the
+      echoed address is normalised out — diffed them, so neither can be used to enumerate accounts
+- [x] `/profile` and all three `/expenses/*` placeholders return `302` to `/login` logged out and
+      `200` logged in
+- [x] The navbar flips: "Sign in / Get started" becomes "Demo / Sign out", and back again
+- [x] `/logout` returns `302` to `/`, and `/profile` is blocked immediately after
+- [x] Visiting `/login` while already signed in redirects to `/profile` instead of re-showing the form
+- [x] Deleting the logged-in user out from under a live session redirects instead of raising
+- [x] Passwords verified with `check_password_hash` only — grepped for `== password`, nothing
+- [x] Step 2 still works end to end: registered a fresh account, followed the redirect, signed in
+- [x] 33 pytest cases green (`python -m pytest tests/ -v`) — Step 2's 14 plus 19 new
+
+Deliberately **not** in this step: password change, "remember me", password reset, and rate
+limiting. `SECRET_KEY` reads from the environment with an obviously-fake development fallback.
 
 </details>
 
