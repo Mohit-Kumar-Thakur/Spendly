@@ -28,7 +28,7 @@
 > its own branch, and lands through a pull request.
 
 <div align="center">
-<img src=".github/assets/progress.svg" alt="Build progress: 1 of 9 steps complete" width="100%">
+<img src=".github/assets/progress.svg" alt="Build progress: 2 of 9 steps complete" width="100%">
 </div>
 
 ---
@@ -269,8 +269,8 @@ Spendly/
 | Step | Feature | Status |
 | :---: | :--- | :---: |
 | **1** | Database setup — schema, connection helper, seed data | ✅ **Done** |
-| **2** | Registration | ⬜ Next |
-| **3** | Login / logout | ⬜ |
+| **2** | Registration | ✅ **Done** |
+| **3** | Login / logout | ⬜ Next |
 | **4** | Profile page | ⬜ |
 | **5** | Dashboard | ⬜ |
 | **6** | Expense list | ⬜ |
@@ -298,6 +298,34 @@ Every box below was exercised, not assumed:
 - [x] Duplicate email raises `IntegrityError` (UNIQUE)
 - [x] `user_id = 999` raises `IntegrityError` (foreign keys genuinely enforced)
 - [x] Deleted the DB, ran `python app.py` — booted clean, rebuilt, landing page returned 200
+
+</details>
+
+<details>
+<summary><b>✅ Step 2 — what "done" actually meant</b></summary>
+
+<br>
+
+The form existed since commit one but `POST /register` returned 405. Now it doesn't — and every
+box below was exercised, not assumed:
+
+- [x] `POST /register` returns `302` to `/login?registered=1` — POST/redirect/GET, so a refresh
+      can't double-submit
+- [x] Password stored as a `scrypt:` hash — grepped the row, the plaintext isn't in it
+- [x] `Test@Example.com` and `TEST@example.com` are the same account — email lowercased on write
+      and on the duplicate check
+- [x] Duplicate email re-renders with "An account with that email already exists." and creates no
+      second row
+- [x] A 7-character password sent by `curl`, bypassing the browser's `minlength`, still returns
+      200 and no row — the server check is the real one
+- [x] Whitespace-only name and an email with no `@` each return their own error
+- [x] After a failure the name and email fields are still filled, the password field is empty
+- [x] The Step 1 demo account and all 8 seeded expenses are untouched
+- [x] 14 pytest cases green (`python -m pytest tests/ -v`) — the repo's first test suite
+- [x] No string interpolation anywhere near the SQL; `.auth-success` uses only CSS variables
+
+Deliberately **not** in this step: sessions, `SECRET_KEY`, and any logged-in state. Those are
+Step 3, and registration ends at the login page on purpose.
 
 </details>
 

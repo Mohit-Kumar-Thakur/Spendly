@@ -109,6 +109,43 @@ def seed_db():
         conn.close()
 
 
+def get_user_by_email(email):
+    """Return the user row matching this email, or None.
+
+    Includes password_hash so Step 3's login check can reuse this as is.
+    """
+    conn = get_db()
+    try:
+        return conn.execute(
+            """SELECT id, name, email, password_hash
+                 FROM users
+                WHERE email = ?""",
+            (email,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def create_user(name, email, password):
+    """Hash the password, insert the user, and return the new id.
+
+    Raises sqlite3.IntegrityError if the email is already taken, so the
+    caller can turn a lost race on the UNIQUE constraint into an error
+    message rather than a 500.
+    """
+    conn = get_db()
+    try:
+        with conn:
+            cursor = conn.execute(
+                """INSERT INTO users (name, email, password_hash)
+                   VALUES (?, ?, ?)""",
+                (name, email, generate_password_hash(password)),
+            )
+        return cursor.lastrowid
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     init_db()
     seed_db()
