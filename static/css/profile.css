@@ -230,7 +230,7 @@ td.profile-txn-amount {
 
 .profile-breakdown-row {
     display: grid;
-    grid-template-columns: 140px 1fr 88px;
+    grid-template-columns: 140px 1fr 44px 88px;
     align-items: center;
     gap: 16px;
 }
@@ -271,6 +271,13 @@ td.profile-txn-amount {
 .profile-bar-shopping { background: var(--cat-shopping); }
 .profile-bar-other { background: var(--cat-other); }
 
+.profile-breakdown-pct {
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
 .profile-breakdown-amt {
     font-size: 0.875rem;
     font-weight: 500;
@@ -280,27 +287,108 @@ td.profile-txn-amount {
 }
 
 /* Bar widths come from this ladder rather than an inline style, which the
-   spec forbids. Percentages are rounded to the nearest 5 in app.py. */
+   spec forbids. One rule per whole percent, so the bar length is exactly
+   the percentage printed beside it. */
 .profile-bar-w-0 { width: 0%; }
+.profile-bar-w-1 { width: 1%; }
+.profile-bar-w-2 { width: 2%; }
+.profile-bar-w-3 { width: 3%; }
+.profile-bar-w-4 { width: 4%; }
 .profile-bar-w-5 { width: 5%; }
+.profile-bar-w-6 { width: 6%; }
+.profile-bar-w-7 { width: 7%; }
+.profile-bar-w-8 { width: 8%; }
+.profile-bar-w-9 { width: 9%; }
 .profile-bar-w-10 { width: 10%; }
+.profile-bar-w-11 { width: 11%; }
+.profile-bar-w-12 { width: 12%; }
+.profile-bar-w-13 { width: 13%; }
+.profile-bar-w-14 { width: 14%; }
 .profile-bar-w-15 { width: 15%; }
+.profile-bar-w-16 { width: 16%; }
+.profile-bar-w-17 { width: 17%; }
+.profile-bar-w-18 { width: 18%; }
+.profile-bar-w-19 { width: 19%; }
 .profile-bar-w-20 { width: 20%; }
+.profile-bar-w-21 { width: 21%; }
+.profile-bar-w-22 { width: 22%; }
+.profile-bar-w-23 { width: 23%; }
+.profile-bar-w-24 { width: 24%; }
 .profile-bar-w-25 { width: 25%; }
+.profile-bar-w-26 { width: 26%; }
+.profile-bar-w-27 { width: 27%; }
+.profile-bar-w-28 { width: 28%; }
+.profile-bar-w-29 { width: 29%; }
 .profile-bar-w-30 { width: 30%; }
+.profile-bar-w-31 { width: 31%; }
+.profile-bar-w-32 { width: 32%; }
+.profile-bar-w-33 { width: 33%; }
+.profile-bar-w-34 { width: 34%; }
 .profile-bar-w-35 { width: 35%; }
+.profile-bar-w-36 { width: 36%; }
+.profile-bar-w-37 { width: 37%; }
+.profile-bar-w-38 { width: 38%; }
+.profile-bar-w-39 { width: 39%; }
 .profile-bar-w-40 { width: 40%; }
+.profile-bar-w-41 { width: 41%; }
+.profile-bar-w-42 { width: 42%; }
+.profile-bar-w-43 { width: 43%; }
+.profile-bar-w-44 { width: 44%; }
 .profile-bar-w-45 { width: 45%; }
+.profile-bar-w-46 { width: 46%; }
+.profile-bar-w-47 { width: 47%; }
+.profile-bar-w-48 { width: 48%; }
+.profile-bar-w-49 { width: 49%; }
 .profile-bar-w-50 { width: 50%; }
+.profile-bar-w-51 { width: 51%; }
+.profile-bar-w-52 { width: 52%; }
+.profile-bar-w-53 { width: 53%; }
+.profile-bar-w-54 { width: 54%; }
 .profile-bar-w-55 { width: 55%; }
+.profile-bar-w-56 { width: 56%; }
+.profile-bar-w-57 { width: 57%; }
+.profile-bar-w-58 { width: 58%; }
+.profile-bar-w-59 { width: 59%; }
 .profile-bar-w-60 { width: 60%; }
+.profile-bar-w-61 { width: 61%; }
+.profile-bar-w-62 { width: 62%; }
+.profile-bar-w-63 { width: 63%; }
+.profile-bar-w-64 { width: 64%; }
 .profile-bar-w-65 { width: 65%; }
+.profile-bar-w-66 { width: 66%; }
+.profile-bar-w-67 { width: 67%; }
+.profile-bar-w-68 { width: 68%; }
+.profile-bar-w-69 { width: 69%; }
 .profile-bar-w-70 { width: 70%; }
+.profile-bar-w-71 { width: 71%; }
+.profile-bar-w-72 { width: 72%; }
+.profile-bar-w-73 { width: 73%; }
+.profile-bar-w-74 { width: 74%; }
 .profile-bar-w-75 { width: 75%; }
+.profile-bar-w-76 { width: 76%; }
+.profile-bar-w-77 { width: 77%; }
+.profile-bar-w-78 { width: 78%; }
+.profile-bar-w-79 { width: 79%; }
 .profile-bar-w-80 { width: 80%; }
+.profile-bar-w-81 { width: 81%; }
+.profile-bar-w-82 { width: 82%; }
+.profile-bar-w-83 { width: 83%; }
+.profile-bar-w-84 { width: 84%; }
 .profile-bar-w-85 { width: 85%; }
+.profile-bar-w-86 { width: 86%; }
+.profile-bar-w-87 { width: 87%; }
+.profile-bar-w-88 { width: 88%; }
+.profile-bar-w-89 { width: 89%; }
 .profile-bar-w-90 { width: 90%; }
+.profile-bar-w-91 { width: 91%; }
+.profile-bar-w-92 { width: 92%; }
+.profile-bar-w-93 { width: 93%; }
+.profile-bar-w-94 { width: 94%; }
 .profile-bar-w-95 { width: 95%; }
+.profile-bar-w-96 { width: 96%; }
+.profile-bar-w-97 { width: 97%; }
+.profile-bar-w-98 { width: 98%; }
+.profile-bar-w-99 { width: 99%; }
 .profile-bar-w-100 { width: 100%; }
 
 /* Below the skill's ~768px line the cards stack and the table scrolls;
@@ -314,5 +402,13 @@ td.profile-txn-amount {
     .profile-card { flex-wrap: wrap; }
     .profile-since { margin-left: 0; width: 100%; }
     .profile-breakdown { padding: 20px; }
-    .profile-breakdown-row { grid-template-columns: 116px 1fr 80px; gap: 12px; }
+    .profile-breakdown-row { grid-template-columns: 104px 1fr 40px 76px; gap: 8px; }
+}
+
+/* Empty state — a new user has no expenses yet. */
+.profile-empty {
+    padding: 24px 20px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--ink-faint);
 }

@@ -18,6 +18,9 @@ TEMPLATE = os.path.join(ROOT, "templates", "profile.html")
 STYLESHEET = os.path.join(ROOT, "static", "css", "style.css")
 PAGE_CSS = os.path.join(ROOT, "static", "css", "profile.css")
 
+# seed_db() inserts the demo user first, into an empty temp database.
+SEED_USER_ID = 1
+
 # Every category in CATEGORIES — the breakdown shows all seven.
 CATEGORIES = ["Food", "Transport", "Bills", "Health",
               "Entertainment", "Shopping", "Other"]
@@ -89,14 +92,15 @@ def test_three_summary_stats_render(client):
     assert body.count('class="profile-stat"') == 3
 
 
-def test_summary_total_matches_the_listed_transactions(client):
+def test_summary_total_matches_the_listed_transactions(client, app):
     """The headline number has to be the sum of the rows below it."""
-    import app as app_module
+    from database import queries
 
-    listed = sum(e["amount"] for e in app_module.PROFILE_EXPENSES)
+    listed = queries.get_recent_transactions(SEED_USER_ID)
+    stats = queries.get_summary_stats(SEED_USER_ID)
 
-    assert round(listed, 2) == app_module.PROFILE_STATS["total"]
-    assert len(app_module.PROFILE_EXPENSES) == app_module.PROFILE_STATS["count"]
+    assert round(sum(e["amount"] for e in listed), 2) == stats["total_spent"]
+    assert len(listed) == stats["transaction_count"]
 
 
 # ---------------------------------------------------------------- #
@@ -147,19 +151,22 @@ def test_breakdown_bar_widths_come_from_the_class_ladder(client):
         assert ".%s {" % cls in css, cls
 
 
-def test_breakdown_totals_match_the_transaction_rows(client):
+def test_breakdown_totals_match_the_transaction_rows(client, app):
     """The per-category totals must reconcile with the table."""
-    import app as app_module
-
     from collections import defaultdict
+
+    from database import queries
+
     totals = defaultdict(float)
-    for expense in app_module.PROFILE_EXPENSES:
+    for expense in queries.get_recent_transactions(SEED_USER_ID):
         totals[expense["category"]] += expense["amount"]
 
-    for row in app_module.PROFILE_BREAKDOWN:
-        assert round(totals[row["category"]], 2) == row["total"], row["category"]
+    breakdown = queries.get_category_breakdown(SEED_USER_ID)
 
-    assert len(app_module.PROFILE_BREAKDOWN) == len(CATEGORIES)
+    for row in breakdown:
+        assert round(totals[row["name"]], 2) == row["amount"], row["name"]
+
+    assert len(breakdown) == len(CATEGORIES)
 
 
 # ---------------------------------------------------------------- #
