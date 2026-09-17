@@ -72,16 +72,35 @@ def login_required(view):
     return wrapped
 
 
+def anonymous_only(view):
+    """Send signed-in visitors straight to their profile.
+
+    The mirror of login_required. The landing page, the register form and
+    the login form are all things you only need while signed out, so
+    reaching any of them with a live session means the profile is what
+    was actually wanted.
+    """
+    @functools.wraps(view)
+    def wrapped(*args, **kwargs):
+        if current_user() is not None:
+            return redirect(url_for("profile"))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
 # ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
 
 @app.route("/")
+@anonymous_only
 def landing():
     return render_template("landing.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
+@anonymous_only
 def register():
     if request.method == "GET":
         return render_template("register.html")
@@ -121,10 +140,9 @@ def register():
 
 
 @app.route("/login", methods=["GET", "POST"])
+@anonymous_only
 def login():
     if request.method == "GET":
-        if current_user():
-            return redirect(url_for("profile"))
         # "registered" is set by the redirect out of /register.
         return render_template("login.html",
                                success=request.args.get("registered"))
@@ -145,6 +163,10 @@ def login():
     # Clear first so nothing from a previous session survives the login.
     session.clear()
     session["user_id"] = user["id"]
+    # current_user() may already have cached "nobody" on g earlier in this
+    # same request — anonymous_only asks before the session exists. Drop
+    # the cache so anything reading it after this point sees the new user.
+    g.pop("user", None)
     return redirect(url_for("profile"))
 
 
@@ -162,6 +184,7 @@ def privacy():
 def logout():
     # clear(), not pop() — nothing from this session should survive.
     session.clear()
+    g.pop("user", None)
     return redirect(url_for("landing"))
 
 
