@@ -218,6 +218,19 @@ PROFILE_BREAKDOWN = [
 # Hardcoded for now; Step 5 reads users.created_at instead.
 PROFILE_MEMBER_SINCE = "September 2026"
 
+# Lucide icon per category, fixed by .claude/skills/frontend-design so a
+# category looks identical everywhere in the app. Keyed by the exact
+# CATEGORIES values in database/db.py.
+CATEGORY_ICONS = {
+    "Food": "utensils",
+    "Transport": "car",
+    "Bills": "receipt",
+    "Health": "heart-pulse",
+    "Entertainment": "clapperboard",
+    "Shopping": "shopping-cart",
+    "Other": "more-horizontal",
+}
+
 
 def avatar_initials(name):
     """One or two initials for the avatar circle.
@@ -240,6 +253,7 @@ def profile():
         stats=PROFILE_STATS,
         expenses=PROFILE_EXPENSES,
         breakdown=PROFILE_BREAKDOWN,
+        category_icons=CATEGORY_ICONS,
     )
 
 

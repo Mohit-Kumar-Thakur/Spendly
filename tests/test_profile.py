@@ -16,6 +16,7 @@ DEMO = {"email": "demo@spendly.com", "password": "demo123"}
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE = os.path.join(ROOT, "templates", "profile.html")
 STYLESHEET = os.path.join(ROOT, "static", "css", "style.css")
+PAGE_CSS = os.path.join(ROOT, "static", "css", "profile.css")
 
 # Every category in CATEGORIES — the breakdown shows all seven.
 CATEGORIES = ["Food", "Transport", "Bills", "Health",
@@ -85,7 +86,7 @@ def test_three_summary_stats_render(client):
     assert "\u20b9337.54" in body          # total spent
     assert ">8<" in body                   # transaction count
     assert "Shopping" in body              # top category
-    assert body.count('class="stat-card"') == 3
+    assert body.count('class="profile-stat"') == 3
 
 
 def test_summary_total_matches_the_listed_transactions(client):
@@ -129,7 +130,7 @@ def test_breakdown_lists_every_category(client):
     body = client.get("/profile").data.decode()
 
     for category in CATEGORIES:
-        assert 'bar-%s ' % category.lower() in body, category
+        assert 'profile-bar-%s ' % category.lower() in body, category
 
 
 def test_breakdown_bar_widths_come_from_the_class_ladder(client):
@@ -137,9 +138,9 @@ def test_breakdown_bar_widths_come_from_the_class_ladder(client):
     login(client)
     body = client.get("/profile").data.decode()
 
-    css = open(STYLESHEET, encoding="utf-8").read()
+    css = open(PAGE_CSS, encoding="utf-8").read()
 
-    used = set(re.findall(r"bar-w-\d+", body))
+    used = set(re.findall(r"profile-bar-w-\d+", body))
 
     assert used, "no width classes rendered"
     for cls in used:
@@ -188,3 +189,58 @@ def test_profile_template_has_no_inline_styles(client):
     source = open(TEMPLATE, encoding="utf-8").read()
 
     assert "style=" not in source
+
+# ---------------------------------------------------------------- #
+# Conventions from .claude/skills/frontend-design/SKILL.md          #
+# ---------------------------------------------------------------- #
+
+def test_page_stylesheet_is_loaded_and_page_specific(client):
+    """Page CSS lives in its own file, not appended to style.css."""
+    login(client)
+    body = client.get("/profile").data.decode()
+
+    assert "css/profile.css" in body
+    assert os.path.exists(PAGE_CSS)
+
+
+def test_every_category_badge_carries_its_lucide_icon(client):
+    """The icon per category is fixed, so a category looks the same everywhere."""
+    import app as app_module
+
+    login(client)
+    body = client.get("/profile").data.decode()
+
+    assert sorted(app_module.CATEGORY_ICONS) == sorted(CATEGORIES)
+    for icon in app_module.CATEGORY_ICONS.values():
+        assert 'data-lucide="%s"' % icon in body, icon
+
+
+def test_lucide_is_actually_loaded_and_initialised(client):
+    """The icons are inert markup unless the library loads and runs."""
+    login(client)
+    body = client.get("/profile").data.decode()
+
+    assert "lucide" in body and "js/main.js" in body
+
+    js = open(os.path.join(ROOT, "static", "js", "main.js"), encoding="utf-8").read()
+    assert "createIcons" in js
+
+
+def test_page_css_uses_tokens_rather_than_literal_colour(client):
+    css = open(PAGE_CSS, encoding="utf-8").read()
+
+    assert re.search(r"#[0-9A-Fa-f]{3,8}", css) is None
+    assert "rgba(" not in css
+
+
+def test_page_css_spacing_sits_on_the_8px_grid(client):
+    """Padding, margin and gap in px must be multiples of 4."""
+    css = open(PAGE_CSS, encoding="utf-8").read()
+
+    offenders = []
+    for prop, value in re.findall(r"(padding|margin|gap)\s*:\s*([^;]+);", css):
+        for px in re.findall(r"(\d+)px", value):
+            if int(px) % 4:
+                offenders.append("%s: %spx" % (prop, px))
+
+    assert not offenders, offenders

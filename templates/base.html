@@ -44,6 +44,9 @@
         </div>
     </footer>
 
+    <!-- Lucide icons. UMD build, no bundler — main.js calls createIcons()
+         once the DOM is ready, and again after any dynamic insert. -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
