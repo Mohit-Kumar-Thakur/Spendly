@@ -15,12 +15,12 @@
         <div class="profile-card">
             <div class="profile-avatar">{{ initials }}</div>
             <div class="profile-identity">
-                <h1 class="profile-name">{{ current_user["name"] }}</h1>
-                <p class="profile-email">{{ current_user["email"] }}</p>
+                <h1 class="profile-name">{{ profile_user["name"] }}</h1>
+                <p class="profile-email">{{ profile_user["email"] }}</p>
             </div>
             <p class="profile-since">
                 <i data-lucide="calendar-days"></i>
-                Member since {{ member_since }}
+                Member since {{ profile_user["member_since"] }}
             </p>
         </div>
 
@@ -30,7 +30,7 @@
                     <i data-lucide="wallet"></i>
                     Total spent
                 </span>
-                <span class="profile-stat-value">₹{{ "%.2f"|format(stats["total"]) }}</span>
+                <span class="profile-stat-value">₹{{ "%.2f"|format(stats["total_spent"]) }}</span>
                 <span class="profile-stat-note">across all time</span>
             </div>
             <div class="profile-stat">
@@ -38,7 +38,7 @@
                     <i data-lucide="list"></i>
                     Transactions
                 </span>
-                <span class="profile-stat-value">{{ stats["count"] }}</span>
+                <span class="profile-stat-value">{{ stats["transaction_count"] }}</span>
                 <span class="profile-stat-note">recorded so far</span>
             </div>
             <div class="profile-stat">
@@ -67,6 +67,13 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% if not expenses %}
+                        <tr>
+                            <td class="profile-empty" colspan="4">
+                                Nothing here yet — your expenses will appear once you add one.
+                            </td>
+                        </tr>
+                        {% endif %}
                         {% for expense in expenses %}
                         <tr>
                             <td class="profile-txn-date">{{ expense["date"] }}</td>
@@ -91,16 +98,22 @@
                 Where it goes
             </h2>
             <div class="profile-breakdown">
+                {% if not breakdown %}
+                <p class="profile-empty">
+                    No spending to break down yet.
+                </p>
+                {% endif %}
                 {% for row in breakdown %}
                 <div class="profile-breakdown-row">
                     <span class="profile-breakdown-cat">
-                        <i data-lucide="{{ category_icons[row["category"]] }}"></i>
-                        {{ row["category"] }}
+                        <i data-lucide="{{ category_icons[row["name"]] }}"></i>
+                        {{ row["name"] }}
                     </span>
                     <div class="profile-breakdown-track">
-                        <div class="profile-bar profile-bar-{{ row["category"]|lower }} profile-bar-w-{{ row["bar"] }}"></div>
+                        <div class="profile-bar profile-bar-{{ row["name"]|lower }} profile-bar-w-{{ row["pct"] }}"></div>
                     </div>
-                    <span class="profile-breakdown-amt">₹{{ "%.2f"|format(row["total"]) }}</span>
+                    <span class="profile-breakdown-pct">{{ row["pct"] }}%</span>
+                    <span class="profile-breakdown-amt">₹{{ "%.2f"|format(row["amount"]) }}</span>
                 </div>
                 {% endfor %}
             </div>
