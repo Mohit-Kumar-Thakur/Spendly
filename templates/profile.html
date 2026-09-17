@@ -4,22 +4,78 @@
 
 {% block content %}
 
-<section class="auth-section">
-    <div class="auth-container">
+<section class="profile-section">
+    <div class="profile-container">
 
-        <div class="auth-header">
-            <h1 class="auth-title">Hello, {{ current_user["name"] }}</h1>
-            <p class="auth-subtitle">You're signed in as {{ current_user["email"] }}</p>
+        <div class="profile-card">
+            <div class="profile-avatar">{{ initials }}</div>
+            <div class="profile-identity">
+                <h1 class="profile-name">{{ current_user["name"] }}</h1>
+                <p class="profile-email">{{ current_user["email"] }}</p>
+            </div>
+            <p class="profile-since">Member since {{ member_since }}</p>
         </div>
 
-        <div class="auth-card">
-            <p>Your profile lands in Step 4. For now this page exists to prove
-               the session works — you can only see it while signed in.</p>
+        <div class="stat-row">
+            <div class="stat-card">
+                <span class="stat-label">Total spent</span>
+                <span class="stat-value">₹{{ "%.2f"|format(stats["total"]) }}</span>
+                <span class="stat-note">across all time</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Transactions</span>
+                <span class="stat-value">{{ stats["count"] }}</span>
+                <span class="stat-note">recorded so far</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Top category</span>
+                <span class="stat-value">{{ stats["top_category"] }}</span>
+                <span class="stat-note">your biggest slice</span>
+            </div>
         </div>
 
-        <p class="auth-switch">
-            Done for now? <a href="{{ url_for('logout') }}">Sign out</a>
-        </p>
+        <section class="profile-block">
+            <h2 class="profile-heading">Transaction history</h2>
+            <div class="txn-wrap">
+                <table class="txn-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="txn-amount">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr>
+                            <td class="txn-date">{{ expense["date"] }}</td>
+                            <td>{{ expense["description"] }}</td>
+                            <td>
+                                <span class="badge badge-{{ expense["category"]|lower }}">{{ expense["category"] }}</span>
+                            </td>
+                            <td class="txn-amount">₹{{ "%.2f"|format(expense["amount"]) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="profile-block">
+            <h2 class="profile-heading">Where it goes</h2>
+            <div class="breakdown-rows">
+                {% for row in breakdown %}
+                <div class="breakdown-row">
+                    <span class="breakdown-cat">{{ row["category"] }}</span>
+                    <div class="breakdown-track">
+                        <div class="breakdown-bar bar-{{ row["category"]|lower }} bar-w-{{ row["bar"] }}"></div>
+                    </div>
+                    <span class="breakdown-amt">₹{{ "%.2f"|format(row["total"]) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
 
     </div>
 </section>

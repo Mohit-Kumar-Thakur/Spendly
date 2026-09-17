@@ -165,11 +165,82 @@ def logout():
     return redirect(url_for("landing"))
 
 
+# ------------------------------------------------------------------ #
+# Profile page data                                                   #
+#                                                                     #
+# Step 4 builds the layout against hardcoded values so the design can  #
+# be settled before any querying exists. These three constants mirror  #
+# SAMPLE_EXPENSES in database/db.py exactly, so when Step 5 swaps them #
+# for real queries the page should not visibly change. Delete this     #
+# whole block then.                                                    #
+# ------------------------------------------------------------------ #
+
+# Newest first — the order a real "recent transactions" query would use.
+PROFILE_EXPENSES = [
+    {"date": "2026-09-16", "description": "Coffee and pastry",
+     "category": "Food", "amount": 8.75},
+    {"date": "2026-09-13", "description": "Birthday gift",
+     "category": "Other", "amount": 25.00},
+    {"date": "2026-09-11", "description": "New running shoes",
+     "category": "Shopping", "amount": 120.00},
+    {"date": "2026-09-09", "description": "Streaming subscription",
+     "category": "Entertainment", "amount": 15.99},
+    {"date": "2026-09-07", "description": "Pharmacy - cold medicine",
+     "category": "Health", "amount": 32.00},
+    {"date": "2026-09-05", "description": "Electricity bill",
+     "category": "Bills", "amount": 78.30},
+    {"date": "2026-09-03", "description": "Monthly metro pass",
+     "category": "Transport", "amount": 45.00},
+    {"date": "2026-09-01", "description": "Lunch at the canteen",
+     "category": "Food", "amount": 12.50},
+]
+
+PROFILE_STATS = {
+    "total": 337.54,          # the eight amounts above, summed
+    "count": 8,
+    "top_category": "Shopping",
+}
+
+# "bar" is a width percentage scaled against the largest category, not a
+# share of the total — small categories would otherwise all flatten to a
+# stub. Rounded to 5 because the widths come from a CSS class ladder
+# (.bar-w-*), since the spec forbids inline styles.
+PROFILE_BREAKDOWN = [
+    {"category": "Shopping",      "total": 120.00, "bar": 100},
+    {"category": "Bills",         "total": 78.30,  "bar": 65},
+    {"category": "Transport",     "total": 45.00,  "bar": 40},
+    {"category": "Health",        "total": 32.00,  "bar": 25},
+    {"category": "Other",         "total": 25.00,  "bar": 20},
+    {"category": "Food",          "total": 21.25,  "bar": 20},
+    {"category": "Entertainment", "total": 15.99,  "bar": 15},
+]
+
+# Hardcoded for now; Step 5 reads users.created_at instead.
+PROFILE_MEMBER_SINCE = "September 2026"
+
+
+def avatar_initials(name):
+    """One or two initials for the avatar circle.
+
+    Doing this here rather than in Jinja keeps the template free of
+    indexing that would blow up on a single-word or empty name.
+    """
+    parts = name.split()
+    return "".join(part[0] for part in parts[:2]).upper() or "?"
+
+
 @app.route("/profile")
 @login_required
 def profile():
-    # Step 4 fills this in. For now it proves the session resolves.
-    return render_template("profile.html")
+    user = current_user()
+    return render_template(
+        "profile.html",
+        initials=avatar_initials(user["name"]),
+        member_since=PROFILE_MEMBER_SINCE,
+        stats=PROFILE_STATS,
+        expenses=PROFILE_EXPENSES,
+        breakdown=PROFILE_BREAKDOWN,
+    )
 
 
 # ------------------------------------------------------------------ #
