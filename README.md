@@ -28,7 +28,7 @@
 > its own branch, and lands through a pull request.
 
 <div align="center">
-<img src=".github/assets/progress.svg" alt="Build progress: 3 of 9 steps complete" width="100%">
+<img src=".github/assets/progress.svg" alt="Build progress: 4 of 9 steps complete" width="100%">
 </div>
 
 ---
@@ -271,8 +271,8 @@ Spendly/
 | **1** | Database setup — schema, connection helper, seed data | ✅ **Done** |
 | **2** | Registration | ✅ **Done** |
 | **3** | Login / logout | ✅ **Done** |
-| **4** | Profile page | ⬜ Next |
-| **5** | Dashboard | ⬜ |
+| **4** | Profile page | ✅ **Done** |
+| **5** | Dashboard | ⬜ Next |
 | **6** | Expense list | ⬜ |
 | **7** | Add expense | ⬜ |
 | **8** | Edit expense | ⬜ |
@@ -354,6 +354,44 @@ exercised, not assumed:
 
 Deliberately **not** in this step: password change, "remember me", password reset, and rate
 limiting. `SECRET_KEY` reads from the environment with an obviously-fake development fallback.
+
+</details>
+
+<details>
+<summary><b>✅ Step 4 — what "done" actually meant</b></summary>
+
+<br>
+
+A design step, not a data step. `/profile` had been a one-line stub since Step 3; it is now the
+finished layout, driven entirely by hardcoded values so the UI could be settled before any
+querying exists. Every box below was exercised, not assumed:
+
+- [x] `/profile` returns `302` to `/login` logged out and `200` logged in — the Step 3
+      `@login_required` decorator is the guard, not a second inline session check
+- [x] The user card reads **name, email and avatar initials from the real session user**, so a
+      freshly registered account sees its own name rather than "Demo User". Only the money is
+      hardcoded
+- [x] `avatar_initials()` survives a one-word name, a three-word name and an empty string —
+      the case that would have crashed had it been done with indexing in Jinja
+- [x] The three summary stats reconcile with the table beneath them: the eight rows sum to
+      exactly ₹337.54, and the breakdown's per-category totals sum back to the same figure.
+      Tested by recomputing from `PROFILE_EXPENSES`, not by copying the constants
+- [x] All 8 transactions render, all 7 categories appear in the breakdown, each with its own
+      badge colour
+- [x] The hardcoded rows mirror `SAMPLE_EXPENSES` exactly, so Step 5's swap to real queries
+      should be visually a no-op — that's the point of building it this way
+- [x] **No hex colour and no `style=` anywhere in `profile.html`** — asserted against the
+      template source, since `base.html` and ordinary hrefs legitimately contain `#`. Seven new
+      `--cat-*` token pairs carry the badge colours
+- [x] Bar widths come from a `.bar-w-*` class ladder rather than an inline width. The one
+      genuinely awkward part of the step, and the only way to honour the no-inline-styles rule
+      while keeping the widths data-driven for Step 5
+- [x] Checked at a 485px viewport: `scrollWidth == clientWidth`, so nothing overflows —
+      the stat row collapses to one column and the table scrolls inside its own wrapper
+- [x] 48 pytest cases green (`python -m pytest tests/ -v`) — Step 3's 33 plus 15 new
+
+Deliberately **not** in this step: any database query. The profile reads no expenses — that is
+Step 5, and wiring it early would have hidden whether the layout actually held up on its own.
 
 </details>
 

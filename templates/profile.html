@@ -1,25 +1,110 @@
+{# templates/profile.html #}
 {% extends "base.html" %}
 
 {% block title %}Profile — Spendly{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
 {% block content %}
 
-<section class="auth-section">
-    <div class="auth-container">
+<section class="profile-section">
+    <div class="profile-container">
 
-        <div class="auth-header">
-            <h1 class="auth-title">Hello, {{ current_user["name"] }}</h1>
-            <p class="auth-subtitle">You're signed in as {{ current_user["email"] }}</p>
+        <div class="profile-card">
+            <div class="profile-avatar">{{ initials }}</div>
+            <div class="profile-identity">
+                <h1 class="profile-name">{{ current_user["name"] }}</h1>
+                <p class="profile-email">{{ current_user["email"] }}</p>
+            </div>
+            <p class="profile-since">
+                <i data-lucide="calendar-days"></i>
+                Member since {{ member_since }}
+            </p>
         </div>
 
-        <div class="auth-card">
-            <p>Your profile lands in Step 4. For now this page exists to prove
-               the session works — you can only see it while signed in.</p>
+        <div class="profile-stats">
+            <div class="profile-stat">
+                <span class="profile-stat-label">
+                    <i data-lucide="wallet"></i>
+                    Total spent
+                </span>
+                <span class="profile-stat-value">₹{{ "%.2f"|format(stats["total"]) }}</span>
+                <span class="profile-stat-note">across all time</span>
+            </div>
+            <div class="profile-stat">
+                <span class="profile-stat-label">
+                    <i data-lucide="list"></i>
+                    Transactions
+                </span>
+                <span class="profile-stat-value">{{ stats["count"] }}</span>
+                <span class="profile-stat-note">recorded so far</span>
+            </div>
+            <div class="profile-stat">
+                <span class="profile-stat-label">
+                    <i data-lucide="trending-up"></i>
+                    Top category
+                </span>
+                <span class="profile-stat-value">{{ stats["top_category"] }}</span>
+                <span class="profile-stat-note">your biggest slice</span>
+            </div>
         </div>
 
-        <p class="auth-switch">
-            Done for now? <a href="{{ url_for('logout') }}">Sign out</a>
-        </p>
+        <section class="profile-block">
+            <h2 class="profile-heading">
+                <i data-lucide="history"></i>
+                Transaction history
+            </h2>
+            <div class="profile-txn-wrap">
+                <table class="profile-txn-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="profile-txn-amount">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr>
+                            <td class="profile-txn-date">{{ expense["date"] }}</td>
+                            <td>{{ expense["description"] }}</td>
+                            <td>
+                                <span class="badge badge-{{ expense["category"]|lower }}">
+                                    <i data-lucide="{{ category_icons[expense["category"]] }}"></i>
+                                    {{ expense["category"] }}
+                                </span>
+                            </td>
+                            <td class="profile-txn-amount">₹{{ "%.2f"|format(expense["amount"]) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="profile-block">
+            <h2 class="profile-heading">
+                <i data-lucide="chart-pie"></i>
+                Where it goes
+            </h2>
+            <div class="profile-breakdown">
+                {% for row in breakdown %}
+                <div class="profile-breakdown-row">
+                    <span class="profile-breakdown-cat">
+                        <i data-lucide="{{ category_icons[row["category"]] }}"></i>
+                        {{ row["category"] }}
+                    </span>
+                    <div class="profile-breakdown-track">
+                        <div class="profile-bar profile-bar-{{ row["category"]|lower }} profile-bar-w-{{ row["bar"] }}"></div>
+                    </div>
+                    <span class="profile-breakdown-amt">₹{{ "%.2f"|format(row["total"]) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
 
     </div>
 </section>

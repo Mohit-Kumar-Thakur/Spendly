@@ -28,6 +28,30 @@
     --radius-sm: 6px;
     --radius-md: 12px;
     --radius-lg: 20px;
+
+    --profile-width: 920px;
+
+    /* The shadow ceiling from .claude/skills/frontend-design — subtle only. */
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+
+    /* Category accents. The hue per category is fixed by
+       .claude/skills/frontend-design/SKILL.md so a category looks the same
+       in badges, tables, filters and any future chart legend. Hex lives
+       here and nowhere else. */
+    --cat-food: var(--accent-2);              /* amber */
+    --cat-food-soft: var(--accent-2-light);
+    --cat-transport: #2f6ca8;                 /* blue */
+    --cat-transport-soft: #e7eff8;
+    --cat-bills: #475569;                     /* slate */
+    --cat-bills-soft: #e9edf2;
+    --cat-health: #b0304a;                    /* rose */
+    --cat-health-soft: #fde7ec;
+    --cat-entertainment: #5c4bb0;             /* violet */
+    --cat-entertainment-soft: #ece9f9;
+    --cat-shopping: #a8377f;                  /* pink */
+    --cat-shopping-soft: #fae7f3;
+    --cat-other: #5f5b52;                     /* gray */
+    --cat-other-soft: #ecebe5;
 }
 
 /* ------------------------------------------------------------------ */
@@ -642,3 +666,36 @@ a { color: inherit; text-decoration: none; }
     .legal { padding: 3rem 1rem 3.5rem; }
     .legal-card { padding: 1.5rem; }
 }
+
+
+/* ==================================================================
+   Category badge — shared
+   Lives here rather than in a page stylesheet because the expense list
+   and any future filter UI show the same pill for the same category.
+   ================================================================== */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.badge svg {
+    width: 12px;
+    height: 12px;
+}
+
+.badge-food { color: var(--cat-food); background: var(--cat-food-soft); }
+.badge-transport { color: var(--cat-transport); background: var(--cat-transport-soft); }
+.badge-bills { color: var(--cat-bills); background: var(--cat-bills-soft); }
+.badge-health { color: var(--cat-health); background: var(--cat-health-soft); }
+.badge-entertainment { color: var(--cat-entertainment); background: var(--cat-entertainment-soft); }
+.badge-shopping { color: var(--cat-shopping); background: var(--cat-shopping-soft); }
+.badge-other { color: var(--cat-other); background: var(--cat-other-soft); }

@@ -207,3 +207,56 @@ def test_seeded_data_is_untouched(client, query):
     assert query("SELECT COUNT(*) AS n FROM users WHERE email = ?",
                  (DEMO["email"],))[0]["n"] == 1
     assert query("SELECT COUNT(*) AS n FROM expenses")[0]["n"] == 8
+
+# ------------------------------------------------------------------ #
+# Signed-in visitors are sent to their profile                        #
+# ------------------------------------------------------------------ #
+
+ANONYMOUS_ONLY = ["/", "/register", "/login"]
+
+
+def test_anonymous_only_routes_redirect_when_logged_in(client):
+    login(client)
+
+    for path in ANONYMOUS_ONLY:
+        response = client.get(path)
+        assert response.status_code == 302, path
+        assert response.headers["Location"].endswith("/profile"), path
+
+
+def test_anonymous_only_routes_still_render_when_logged_out(client):
+    for path in ANONYMOUS_ONLY:
+        response = client.get(path)
+        assert response.status_code == 200, path
+
+
+def test_the_same_request_that_logs_you_in_does_not_cache_a_stale_user(client):
+    """Regression: current_user() caches on g.
+
+    anonymous_only asks "is anyone signed in?" before POST /login has
+    written the session, so the cached answer has to be dropped once it
+    has. Without that, everything after the login in the same app context
+    still sees an anonymous visitor.
+    """
+    login(client)
+
+    assert client.get("/profile").status_code == 200
+
+
+def test_logging_out_restores_access_to_the_public_pages(client):
+    login(client)
+    client.get("/logout")
+
+    for path in ANONYMOUS_ONLY:
+        assert client.get(path).status_code == 200, path
+
+
+# ------------------------------------------------------------------ #
+# Form placeholders                                                   #
+# ------------------------------------------------------------------ #
+
+def test_form_placeholders_use_mohit(client):
+    for path in ["/login", "/register"]:
+        body = client.get(path).data.decode().lower()
+        assert "nitish" not in body, path
+        assert "mohit@example.com" in body, path
