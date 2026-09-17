@@ -28,7 +28,7 @@
 > its own branch, and lands through a pull request.
 
 <div align="center">
-<img src=".github/assets/progress.svg" alt="Build progress: 4 of 9 steps complete" width="100%">
+<img src=".github/assets/progress.svg" alt="Build progress: 5 of 9 steps complete" width="100%">
 </div>
 
 ---
@@ -272,8 +272,8 @@ Spendly/
 | **2** | Registration | ✅ **Done** |
 | **3** | Login / logout | ✅ **Done** |
 | **4** | Profile page | ✅ **Done** |
-| **5** | Dashboard | ⬜ Next |
-| **6** | Expense list | ⬜ |
+| **5** | Backend connection — the profile page reads real data | ✅ **Done** |
+| **6** | Date filter — narrow the profile page to a date range | ⬜ Next |
 | **7** | Add expense | ⬜ |
 | **8** | Edit expense | ⬜ |
 | **9** | Delete expense | ⬜ |

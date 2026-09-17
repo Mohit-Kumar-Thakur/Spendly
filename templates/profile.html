@@ -9,6 +9,11 @@
 
 {% block content %}
 
+{# Anything other than "all" means the numbers on this page describe a
+   window rather than the whole history, which several bits of copy below
+   have to say out loud. #}
+{% set filtered = date_filter["range"] != "all" %}
+
 <section class="profile-section">
     <div class="profile-container">
 
@@ -31,7 +36,9 @@
                     Total spent
                 </span>
                 <span class="profile-stat-value">₹{{ "%.2f"|format(stats["total_spent"]) }}</span>
-                <span class="profile-stat-note">across all time</span>
+                <span class="profile-stat-note">
+                    {%- if filtered %}{{ date_filter["label"] }}{% else %}across all time{% endif -%}
+                </span>
             </div>
             <div class="profile-stat">
                 <span class="profile-stat-label">
@@ -39,7 +46,9 @@
                     Transactions
                 </span>
                 <span class="profile-stat-value">{{ stats["transaction_count"] }}</span>
-                <span class="profile-stat-note">recorded so far</span>
+                <span class="profile-stat-note">
+                    {%- if filtered %}{{ date_filter["label"] }}{% else %}recorded so far{% endif -%}
+                </span>
             </div>
             <div class="profile-stat">
                 <span class="profile-stat-label">
@@ -47,9 +56,42 @@
                     Top category
                 </span>
                 <span class="profile-stat-value">{{ stats["top_category"] }}</span>
-                <span class="profile-stat-note">your biggest slice</span>
+                <span class="profile-stat-note">
+                    {%- if filtered %}{{ date_filter["label"] }}{% else %}your biggest slice{% endif -%}
+                </span>
             </div>
         </div>
+
+        <section class="profile-filter" aria-label="Filter by date">
+            <div class="profile-filter-presets">
+                {% for key, label in filter_presets %}
+                <a class="profile-chip{% if date_filter['range'] == key %} profile-chip-on{% endif %}"
+                   href="{{ url_for('profile', range=key) }}"
+                   {% if date_filter['range'] == key %}aria-current="page"{% endif %}>{{ label }}</a>
+                {% endfor %}
+            </div>
+
+            {# A plain GET form, so the filtered view is a real URL and the
+               page needs no JavaScript to work. #}
+            <form class="profile-filter-custom" method="get"
+                  action="{{ url_for('profile') }}">
+                <input type="hidden" name="range" value="custom">
+                <label class="profile-filter-label" for="filter-start">From</label>
+                <input class="profile-filter-date" type="date" id="filter-start"
+                       name="start" value="{{ date_filter['start'] or '' }}">
+                <label class="profile-filter-label" for="filter-end">To</label>
+                <input class="profile-filter-date" type="date" id="filter-end"
+                       name="end" value="{{ date_filter['end'] or '' }}">
+                <button class="profile-filter-apply" type="submit">Apply</button>
+            </form>
+
+            {% if date_filter["error"] %}
+            <p class="profile-filter-error">
+                <i data-lucide="alert-circle"></i>
+                {{ date_filter["error"] }}
+            </p>
+            {% endif %}
+        </section>
 
         <section class="profile-block">
             <h2 class="profile-heading">
@@ -70,7 +112,11 @@
                         {% if not expenses %}
                         <tr>
                             <td class="profile-empty" colspan="4">
+                                {% if has_expenses %}
+                                No expenses in {{ date_filter["label"] }}.
+                                {% else %}
                                 Nothing here yet — your expenses will appear once you add one.
+                                {% endif %}
                             </td>
                         </tr>
                         {% endif %}
@@ -100,7 +146,11 @@
             <div class="profile-breakdown">
                 {% if not breakdown %}
                 <p class="profile-empty">
+                    {% if has_expenses %}
+                    Nothing to break down in {{ date_filter["label"] }}.
+                    {% else %}
                     No spending to break down yet.
+                    {% endif %}
                 </p>
                 {% endif %}
                 {% for row in breakdown %}

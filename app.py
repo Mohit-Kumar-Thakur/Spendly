@@ -1,6 +1,7 @@
 import functools
 import os
 import sqlite3
+from datetime import date, datetime, timedelta
 
 from flask import (
     Flask,
@@ -213,25 +214,151 @@ def avatar_initials(name):
     return "".join(part[0] for part in parts[:2]).upper() or "?"
 
 
+# ------------------------------------------------------------------ #
+# Date filtering                                                      #
+# ------------------------------------------------------------------ #
+
+DATE_FORMAT = "%Y-%m-%d"
+
+# A filtered table shows the whole range rather than the ten most recent
+# rows: choosing a range and then seeing only part of it would be worse
+# than no filter at all. This is a guard against an enormous range, not a
+# page size.
+TXN_LIMIT = 100
+
+# Label and key for each preset chip, in the order they are shown. The
+# template iterates this, so the chips and the resolver below can never
+# drift apart.
+FILTER_PRESETS = (
+    ("all", "All time"),
+    ("30d", "Last 30 days"),
+    ("month", "This month"),
+    ("year", "This year"),
+)
+
+
+def _parse_date(value):
+    """A YYYY-MM-DD string as a date, or None if it is anything else.
+
+    Everything the query string offers goes through here first, so a value
+    that is not a date can never reach the SQL layer.
+    """
+    try:
+        return datetime.strptime(value.strip(), DATE_FORMAT).date()
+    except (AttributeError, ValueError):
+        return None
+
+
+def _format_range_label(start, end):
+    """Human wording for the range currently in effect.
+
+    Built in Python off queries.MONTHS rather than strftime for the reason
+    _format_member_since gives: %B follows the machine's locale, and the
+    %-d that would drop the leading zero does not exist on Windows.
+    """
+    def one(value):
+        return "%d %s %d" % (
+            value.day, queries.MONTHS[value.month - 1][:3], value.year)
+
+    if start and end:
+        # Within one year the year is said once, at the end: "1 Sep – 5 Sep
+        # 2026" rather than repeating 2026 either side of the dash.
+        if start.year == end.year:
+            return "%d %s – %s" % (
+                start.day, queries.MONTHS[start.month - 1][:3], one(end))
+        return "%s – %s" % (one(start), one(end))
+    if start:
+        return "Since %s" % one(start)
+    if end:
+        return "Up to %s" % one(end)
+    return "All time"
+
+
+def resolve_date_range(args, today=None):
+    """Turn the query string into a concrete, validated range.
+
+    Returns one dict rather than a pair because the page needs all of it:
+    which chip is lit, what the two date inputs should say, how to name
+    the range in the surrounding copy, and whether to explain itself.
+
+    Nothing in here can fail the request. Every rejected input falls back
+    to all time and sets an error — a profile page that 400s over a typo
+    in a date box would be a worse answer than one that shows everything
+    and says why. today is injectable so the preset tests can pin it.
+    """
+    today = today or date.today()
+    preset = (args.get("range") or "all").strip().lower()
+    start = end = None
+    error = None
+
+    if preset == "custom":
+        # Empty is not the same as wrong: a blank end means "open ended",
+        # while an unparseable one means the whole filter is untrustworthy.
+        raw_start, raw_end = args.get("start", ""), args.get("end", "")
+        start, end = _parse_date(raw_start), _parse_date(raw_end)
+
+        if (raw_start and start is None) or (raw_end and end is None):
+            start = end = None
+            error = "That didn't look like a date — showing all time instead."
+        elif start and end and start > end:
+            start = end = None
+            error = "The start date is after the end date — showing all time."
+    elif preset == "30d":
+        # Today counts as one of the thirty, so the window is 29 days back.
+        start, end = today - timedelta(days=29), today
+    elif preset == "month":
+        start, end = today.replace(day=1), today
+    elif preset == "year":
+        start, end = date(today.year, 1, 1), today
+    elif preset != "all":
+        preset = "all"
+        error = "That filter isn't one I know — showing all time."
+
+    # A custom range with nothing in it, or one that was rejected above, is
+    # all time by another name. Collapsing it here means the chips, the
+    # label and the copy all agree without the template re-deriving it.
+    if preset == "custom" and not (start or end):
+        preset = "all"
+
+    return {
+        "range": preset,
+        "start": start.isoformat() if start else None,
+        "end": end.isoformat() if end else None,
+        "label": _format_range_label(start, end),
+        "error": error,
+    }
+
+
 @app.route("/profile")
 @login_required
 def profile():
     # login_required has already resolved the session, so this id exists.
     user_id = current_user()["id"]
 
+    date_filter = resolve_date_range(request.args)
+    start, end = date_filter["start"], date_filter["end"]
+
     # Four independent reads rather than one joined query: each answers a
     # different section of the page, and a join would have to fan the
     # user row out across every expense to get them in one trip.
     user = queries.get_user_by_id(user_id)
+    stats = queries.get_summary_stats(user_id, start, end)
 
     return render_template(
         "profile.html",
         profile_user=user,
         initials=avatar_initials(user["name"]),
-        stats=queries.get_summary_stats(user_id),
-        expenses=queries.get_recent_transactions(user_id),
-        breakdown=queries.get_category_breakdown(user_id),
+        stats=stats,
+        expenses=queries.get_recent_transactions(user_id, TXN_LIMIT,
+                                                 start, end),
+        breakdown=queries.get_category_breakdown(user_id, start, end),
         category_icons=CATEGORY_ICONS,
+        date_filter=date_filter,
+        filter_presets=FILTER_PRESETS,
+        # Short-circuited: the extra query only runs when the range came
+        # back empty, which is the only time the two empty states differ.
+        has_expenses=bool(stats["transaction_count"])
+        or queries.has_any_expenses(user_id),
     )
 
 

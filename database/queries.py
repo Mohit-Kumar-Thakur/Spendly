@@ -37,6 +37,29 @@ def _format_member_since(created_at):
         return "—"
 
 
+def _range_clause(start, end):
+    """SQL fragment and bound parameters for an optional date range.
+
+    Both bounds are inclusive and both are optional, so one end on its own
+    is a valid open-ended range. The fragment is fixed text that only ever
+    grows by whole literal clauses — the two dates are bound values, never
+    formatted into the statement.
+
+    Returns ("", []) when neither bound is given, which is what keeps every
+    unfiltered caller running the exact query it ran before.
+    """
+    clause, params = "", []
+
+    if start:
+        clause += " AND date >= ?"
+        params.append(start)
+    if end:
+        clause += " AND date <= ?"
+        params.append(end)
+
+    return clause, params
+
+
 def get_user_by_id(user_id):
     """Return the profile header fields for one user, or None.
 
@@ -65,8 +88,34 @@ def get_user_by_id(user_id):
     }
 
 
-def get_summary_stats(user_id):
+def has_any_expenses(user_id):
+    """True if this user has ever recorded an expense, ignoring any range.
+
+    The profile page needs this to tell two empty tables apart: a range
+    that happens to contain nothing deserves "no expenses in July", while
+    a brand-new account deserves the first-run invitation to add one.
+    LIMIT 1 because the count is never interesting, only the existence.
+    """
+    conn = get_db()
+    try:
+        row = conn.execute(
+            """SELECT 1
+                 FROM expenses
+                WHERE user_id = ?
+                LIMIT 1""",
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+    return row is not None
+
+
+def get_summary_stats(user_id, start=None, end=None):
     """Return the three headline numbers the summary cards show.
+
+    start and end narrow every number to an inclusive date range. Leaving
+    both as None means all time, which is the Step 5 behaviour unchanged.
 
     Kept as one call so a page render costs a single trip rather than
     three, and so the "no expenses yet" case is decided in one place: a
@@ -81,14 +130,16 @@ def get_summary_stats(user_id):
     total_spent is rounded because SUM over REAL accumulates float error
     (337.54 comes back as 337.54000000000002) and this is shown as money.
     """
+    clause, bounds = _range_clause(start, end)
+
     conn = get_db()
     try:
         totals = conn.execute(
             """SELECT COUNT(*)                 AS n,
                       COALESCE(SUM(amount), 0) AS total
                  FROM expenses
-                WHERE user_id = ?""",
-            (user_id,),
+                WHERE user_id = ?""" + clause,
+            (user_id, *bounds),
         ).fetchone()
 
         # No rows at all: there is no category to name, so short-circuit
@@ -103,11 +154,11 @@ def get_summary_stats(user_id):
         top = conn.execute(
             """SELECT category
                  FROM expenses
-                WHERE user_id = ?
+                WHERE user_id = ?""" + clause + """
                 GROUP BY category
                 ORDER BY SUM(amount) DESC, category ASC
                 LIMIT 1""",
-            (user_id,),
+            (user_id, *bounds),
         ).fetchone()
 
         return {
@@ -119,8 +170,12 @@ def get_summary_stats(user_id):
         conn.close()
 
 
-def get_recent_transactions(user_id, limit=10):
+def get_recent_transactions(user_id, limit=10, start=None, end=None):
     """Return this user's most recent expenses, newest first.
+
+    start and end restrict the rows to an inclusive date range; both None
+    means all time. limit keeps its place and its default so the Step 5
+    callers are unaffected — the filtered profile page passes its own cap.
 
     Ties on date break by id descending: several seeded expenses share a
     date, and SQLite may return equal keys in any order, which would
@@ -130,23 +185,30 @@ def get_recent_transactions(user_id, limit=10):
 
     Returns [] for a user with no expenses.
     """
+    clause, bounds = _range_clause(start, end)
+
     conn = get_db()
     try:
         rows = conn.execute(
             """SELECT date, description, category, amount
                  FROM expenses
-                WHERE user_id = ?
+                WHERE user_id = ?""" + clause + """
                 ORDER BY date DESC, id DESC
                 LIMIT ?""",
-            (user_id, int(limit)),
+            (user_id, *bounds, int(limit)),
         ).fetchall()
         return [dict(row) for row in rows]
     finally:
         conn.close()
 
 
-def get_category_breakdown(user_id):
+def get_category_breakdown(user_id, start=None, end=None):
     """Return spending per category as name/amount/pct dicts, biggest first.
+
+    start and end narrow the breakdown to an inclusive date range, and the
+    percentages are then shares of that range's total rather than of all
+    time — a breakdown that filtered its rows but not its denominator
+    would print columns that no longer add up to 100.
 
     The percentages have to add up to 100 — a breakdown whose labels read
     99% looks broken. Rounding each share independently loses or gains a
@@ -158,15 +220,17 @@ def get_category_breakdown(user_id):
     as zero. Returns [] for a user with no expenses, which also keeps the
     percentage maths away from a division by zero.
     """
+    clause, bounds = _range_clause(start, end)
+
     conn = get_db()
     try:
         rows = conn.execute(
             """SELECT category, SUM(amount) AS total
                  FROM expenses
-                WHERE user_id = ?
+                WHERE user_id = ?""" + clause + """
                 GROUP BY category
                 ORDER BY total DESC, category ASC""",
-            (user_id,),
+            (user_id, *bounds),
         ).fetchall()
     finally:
         conn.close()
