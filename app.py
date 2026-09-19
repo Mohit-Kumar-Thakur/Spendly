@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 
 from flask import (
     Flask,
+    abort,
     g,
     redirect,
     render_template,
@@ -20,10 +21,12 @@ from database.db import (
     create_expense,
     create_user,
     get_db,
+    get_expense,
     get_user_by_email,
     get_user_by_id,
     init_db,
     seed_db,
+    update_expense,
 )
 
 app = Flask(__name__)
@@ -346,7 +349,22 @@ MAX_DESCRIPTION = 200
 # the sentence below or nothing at all.
 NOTICES = {
     "added": "Expense added.",
+    "updated": "Expense updated.",
 }
+
+
+def owned_expense_or_404(expense_id):
+    """Fetch one of the logged-in user's expenses, or give up with a 404.
+
+    Every method of the edit and delete routes goes through here, so the
+    four of them cannot drift apart on the ownership check. 404 rather
+    than 403 for someone else's expense: a 403 would confirm that the
+    expense exists, which is a way of counting other people's records.
+    """
+    expense = get_expense(expense_id, current_user()["id"])
+    if expense is None:
+        abort(404)
+    return expense
 
 
 def render_expense_form(action, title, submit_label, expense, error=None):
@@ -512,17 +530,44 @@ def add_expense():
     # POST/redirect/GET so a refresh cannot file the same expense twice.
     return redirect(url_for("profile", added=1))
 
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_expense(id):
+    # Fetched before anything is parsed, so an id that is not the user's
+    # 404s without the form data ever being looked at.
+    expense = owned_expense_or_404(id)
+    action = url_for("edit_expense", id=id)
+
+    if request.method == "GET":
+        # "%.2f" so the field opens reading 12.50 rather than 12.5,
+        # matching the amount as the transaction table prints it.
+        return render_expense_form(action, "Edit expense", "Save changes", {
+            "amount": "%.2f" % expense["amount"],
+            "category": expense["category"],
+            "date": expense["date"],
+            "description": expense["description"],
+        })
+
+    values, error = validate_expense_form(request.form)
+
+    if error:
+        # The submitted values, not the stored ones — what the user is
+        # looking at is their unsaved edit, and re-rendering the database
+        # row would silently throw it away.
+        return render_expense_form(action, "Edit expense", "Save changes",
+                                   values, error)
+
+    if not update_expense(id, current_user()["id"], **values):
+        # Nothing matched, so the row went between opening the form and
+        # saving it. A confirmation banner here would be a lie.
+        abort(404)
+
+    return redirect(url_for("profile", updated=1))
+
 
 # ------------------------------------------------------------------ #
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
-
-
-@app.route("/expenses/<int:id>/edit")
-@login_required
-def edit_expense(id):
-    return "Edit expense — coming in Step 8"
-
 
 @app.route("/expenses/<int:id>/delete")
 @login_required

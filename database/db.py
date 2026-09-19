@@ -173,6 +173,54 @@ def create_expense(user_id, amount, category, date, description=None):
         conn.close()
 
 
+def get_expense(expense_id, user_id):
+    """Return one expense belonging to this user, or None.
+
+    user_id is in the WHERE clause, not checked afterwards in Python.
+    That is what makes "no such expense" and "not yours" the same answer:
+    the caller cannot tell them apart, so nobody can count another user's
+    records by trying ids.
+    """
+    conn = get_db()
+    try:
+        return conn.execute(
+            """SELECT id, amount, category, date, description
+                 FROM expenses
+                WHERE id = ? AND user_id = ?""",
+            (expense_id, user_id),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def update_expense(expense_id, user_id, amount, category, date, description):
+    """Overwrite the four editable columns. True if a row changed.
+
+    Carries the same doubled WHERE as get_expense, because this is the
+    statement that actually enforces ownership — the check the view did
+    before rendering the form only decided which page to show, and the
+    row may have gone since.
+
+    id, user_id and created_at are not in the SET list: created_at means
+    when the expense was first recorded, and an edit is not a new record.
+
+    Returns False rather than raising when nothing matched, so the caller
+    can answer a stale form with a 404 instead of a false confirmation.
+    """
+    conn = get_db()
+    try:
+        with conn:
+            cursor = conn.execute(
+                """UPDATE expenses
+                      SET amount = ?, category = ?, date = ?, description = ?
+                    WHERE id = ? AND user_id = ?""",
+                (amount, category, date, description, expense_id, user_id),
+            )
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
 def get_user_by_id(user_id):
     """Return the user row for this id, or None.
 

@@ -119,12 +119,16 @@
                             <th>Description</th>
                             <th>Category</th>
                             <th class="profile-txn-amount">Amount</th>
+                            {# A real label rather than an empty cell, clipped
+                               out of sight but not out of the accessibility
+                               tree, so the column is announced. #}
+                            <th><span class="profile-visually-hidden">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% if not expenses %}
                         <tr>
-                            <td class="profile-empty" colspan="4">
+                            <td class="profile-empty" colspan="5">
                                 {% if has_expenses %}
                                 No expenses in {{ date_filter["label"] }}.
                                 {% else %}
@@ -145,6 +149,13 @@
                                 </span>
                             </td>
                             <td class="profile-txn-amount">₹{{ "%.2f"|format(expense["amount"]) }}</td>
+                            <td class="profile-txn-actions">
+                                <a href="{{ url_for('edit_expense', id=expense['id']) }}"
+                                   aria-label="Edit {{ expense['description'] or expense['category'] }}">
+                                    <i data-lucide="pencil"></i>
+                                    Edit
+                                </a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

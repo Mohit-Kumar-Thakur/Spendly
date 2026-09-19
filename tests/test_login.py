@@ -119,7 +119,7 @@ def test_expense_placeholders_still_say_coming_soon(client):
     login(client)
 
     assert b"Add an expense" in client.get("/expenses/add").data
-    assert b"coming in Step 8" in client.get("/expenses/1/edit").data
+    assert b"Edit expense" in client.get("/expenses/1/edit").data
     assert b"coming in Step 9" in client.get("/expenses/1/delete").data
 
 

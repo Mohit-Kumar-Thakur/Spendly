@@ -183,6 +183,10 @@ def get_recent_transactions(user_id, limit=10, start=None, end=None):
     Highest id means most recently entered, which is also the order a
     user expects.
 
+    id is selected so the profile table can link each row to its own edit
+    and delete pages. Nothing else needs it, but a row the user can act on
+    has to be identifiable.
+
     Returns [] for a user with no expenses.
     """
     clause, bounds = _range_clause(start, end)
@@ -190,7 +194,7 @@ def get_recent_transactions(user_id, limit=10, start=None, end=None):
     conn = get_db()
     try:
         rows = conn.execute(
-            """SELECT date, description, category, amount
+            """SELECT id, date, description, category, amount
                  FROM expenses
                 WHERE user_id = ?""" + clause + """
                 ORDER BY date DESC, id DESC
