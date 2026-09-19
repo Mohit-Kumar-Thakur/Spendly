@@ -35,8 +35,17 @@ from database.db import (
 app = Flask(__name__)
 
 # Sessions are signed with this. The fallback is a development value on
-# purpose — set SECRET_KEY in the environment for anything real.
-app.secret_key = os.environ.get("SECRET_KEY", "dev-only-not-a-secret")
+# purpose, and it is only safe where nobody else can reach the app: it is
+# written down in this file, so a deployment that used it would let anyone
+# forge a session cookie and sign in as any user. Deployed environments
+# have to supply their own, and are refused a boot if they don't.
+app.secret_key = os.environ.get("SECRET_KEY")
+if not app.secret_key:
+    if os.environ.get("RAILWAY_ENVIRONMENT"):
+        raise RuntimeError(
+            "SECRET_KEY must be set in the environment when deployed."
+        )
+    app.secret_key = "dev-only-not-a-secret"
 
 # Make sure the database exists and has demo data before any route runs.
 with app.app_context():

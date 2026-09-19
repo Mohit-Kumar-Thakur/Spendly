@@ -233,6 +233,8 @@ never change.
 | **Frontend** | Plain HTML + CSS + vanilla JS | No build step, nothing hidden |
 | **Passwords** | `werkzeug.security` | Already a Flask dependency |
 | **Tests** | pytest + pytest-flask | — |
+| **Prod server** | gunicorn | `flask run` is a development server and says so |
+| **Hosting** | Railway | Reads the `Procfile`, no config file needed |
 
 </div>
 
@@ -256,9 +258,68 @@ Spendly/
 ├── .claude/
 │   └── specs/                  # 📌 one spec per step — the source of truth
 ├── .github/assets/             # the animated art in this README
+├── Procfile                    # gunicorn entry point for deployment
 ├── requirements.txt
 └── expense_tracker.db          # created on first run (gitignored)
 ```
+
+---
+
+## 🚀 Deployment
+
+> **Status — not yet live.** The app is configured for Railway and boots correctly under
+> gunicorn, but no public deployment exists yet. The live URL goes here once it does.
+
+<details open>
+<summary><b>What makes it deployable</b></summary>
+
+<br>
+
+| Piece | Why it's needed |
+| :--- | :--- |
+| `Procfile` | `web: gunicorn app:app --bind 0.0.0.0:$PORT` — without it the platform runs `python app.py`, which binds port 5001 on localhost with `debug=True` and is unreachable from outside |
+| `gunicorn` in `requirements.txt` | The production WSGI server that actually serves the app |
+| `SECRET_KEY` env var | **Required.** See below |
+| `DB_PATH` env var | Optional override for the SQLite file location |
+
+</details>
+
+<details>
+<summary><b>🔐 SECRET_KEY is mandatory in a deployment</b></summary>
+
+<br>
+
+Session cookies are signed with `app.secret_key`. The development fallback is written down in
+`app.py`, so anything using it would let a stranger forge a cookie and sign in as any user.
+
+A deployed environment that doesn't set `SECRET_KEY` therefore refuses to start:
+
+```
+RuntimeError: SECRET_KEY must be set in the environment when deployed.
+```
+
+Local runs and the test suite keep the fallback, so nothing changes day to day. Generate a real
+one with:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+</details>
+
+<details>
+<summary><b>⚠️ The database resets on every redeploy</b></summary>
+
+<br>
+
+The container filesystem is ephemeral and `expense_tracker.db` is gitignored, so each deploy
+starts from `seed_db()` alone — every account and expense created on the live site is gone.
+
+This is a deliberate trade-off. Spendly is a practice project, and the point is the build loop,
+not running a service anyone depends on. Making data survive would mean a mounted volume or a
+move to Postgres; neither is worth it here.
+
+</details>
 
 ---
 
