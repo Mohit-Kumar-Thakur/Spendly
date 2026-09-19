@@ -115,7 +115,8 @@ def test_get_recent_transactions_returns_newest_first(app):
     rows = queries.get_recent_transactions(SEED_USER_ID)
 
     assert len(rows) == SEED_COUNT
-    assert sorted(rows[0]) == ["amount", "category", "date", "description"]
+    assert sorted(rows[0]) == ["amount", "category", "date", "description",
+                               "id"]
     assert [r["date"] for r in rows] == sorted(
         (r["date"] for r in rows), reverse=True)
     assert rows[0]["description"] == "Coffee and pastry"

@@ -30,6 +30,27 @@ def app(tmp_path, monkeypatch):
     sys.modules.pop("app", None)
 
 
+@pytest.fixture(autouse=True)
+def _push_request_context():
+    """Disable pytest-flask's whole-test request context.
+
+    pytest-flask pushes one test_request_context() for the duration of any
+    test that uses the `app` fixture. Flask only creates a new application
+    context if one is not already on the stack, so every request made by
+    the test client then reuses that outer context — and with it, one
+    shared `g`.
+
+    current_user() caches the resolved user on `g` deliberately, so that
+    sharing makes one request's answer stick for the rest of the test:
+    two test clients in the same test see each other's user, or each
+    other's "nobody". In a real process each request gets its own `g` and
+    none of that can happen, so the fixture is papering a hole into the
+    tests rather than out of them. Overriding it by name is the supported
+    way to opt out.
+    """
+    yield
+
+
 @pytest.fixture
 def client(app):
     return app.test_client()

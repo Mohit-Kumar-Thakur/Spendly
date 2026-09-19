@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 
 from flask import (
     Flask,
+    abort,
     g,
     redirect,
     render_template,
@@ -16,12 +17,19 @@ from werkzeug.security import check_password_hash
 
 from database import queries
 from database.db import (
+    CATEGORIES,
+    create_expense,
     create_user,
     get_db,
+    get_expense,
+    # Aliased: the view below is also called delete_expense, and the
+    # endpoint name is what url_for() in the templates already uses.
+    delete_expense as delete_expense_row,
     get_user_by_email,
     get_user_by_id,
     init_db,
     seed_db,
+    update_expense,
 )
 
 app = Flask(__name__)
@@ -329,6 +337,131 @@ def resolve_date_range(args, today=None):
     }
 
 
+# ------------------------------------------------------------------ #
+# The expense form                                                    #
+# ------------------------------------------------------------------ #
+
+# Above this an amount is far likelier to be a typo than a real expense,
+# and an unbounded value has nowhere to sit in the transaction table.
+MAX_AMOUNT = 10_000_000
+
+MAX_DESCRIPTION = 200
+
+# Keyed by the query parameter each redirect sets. The text comes from
+# here rather than from the URL, so ?added=<anything> can only ever show
+# the sentence below or nothing at all.
+NOTICES = {
+    "added": "Expense added.",
+    "updated": "Expense updated.",
+    "deleted": "Expense deleted.",
+}
+
+
+def owned_expense_or_404(expense_id):
+    """Fetch one of the logged-in user's expenses, or give up with a 404.
+
+    Every method of the edit and delete routes goes through here, so the
+    four of them cannot drift apart on the ownership check. 404 rather
+    than 403 for someone else's expense: a 403 would confirm that the
+    expense exists, which is a way of counting other people's records.
+    """
+    expense = get_expense(expense_id, current_user()["id"])
+    if expense is None:
+        abort(404)
+    return expense
+
+
+def render_expense_form(action, title, submit_label, expense, error=None):
+    """Render the shared add/edit form.
+
+    The GET, the rejected POST and Step 8's edit view all render the same
+    template with the same six arguments; routing them through here is
+    what stops the three from drifting apart.
+    """
+    return render_template(
+        "expense_form.html",
+        form_action=action,
+        form_title=title,
+        submit_label=submit_label,
+        categories=CATEGORIES,
+        category_icons=CATEGORY_ICONS,
+        expense=expense,
+        error=error,
+    )
+
+
+def validate_expense_form(form, today=None):
+    """Check one submitted expense and return (values, error).
+
+    Shared by adding and editing so the two can never disagree about what
+    a valid expense is — an edit that could store something the add form
+    refuses would be a hole in the same wall.
+
+    values always comes back populated, error or not, so a rejected form
+    can be re-rendered with what the user actually typed instead of
+    clearing itself. First failure wins, the way register() already does
+    it, so there is one thing to fix at a time.
+
+    today is injectable so the future-date rule can be tested without
+    waiting for tomorrow.
+    """
+    raw_amount = form.get("amount", "").strip()
+    category = form.get("category", "").strip()
+    raw_date = form.get("date", "").strip()
+    description = form.get("description", "").strip()
+
+    values = {
+        "amount": raw_amount,
+        "category": category,
+        "date": raw_date,
+        "description": description,
+    }
+
+    parsed_date = _parse_date(raw_date)
+
+    if not raw_amount:
+        return values, "Please enter an amount."
+
+    try:
+        amount = float(raw_amount)
+    except ValueError:
+        return values, "Amount must be a number, like 250 or 12.50."
+
+    # float() accepts "inf" and "nan". A stored infinity would turn every
+    # SUM on the profile page into inf, and nan fails every comparison
+    # including the ones below, so neither can be left to the range check.
+    if amount != amount or amount in (float("inf"), float("-inf")):
+        return values, "Amount must be a number, like 250 or 12.50."
+    if amount <= 0:
+        return values, "Amount must be greater than zero."
+    if amount > MAX_AMOUNT:
+        return values, "That amount looks too large — please check it."
+
+    if category not in CATEGORIES:
+        return values, "Please choose one of the listed categories."
+
+    if parsed_date is None:
+        return values, "Please enter a valid date."
+    if parsed_date > (today or date.today()):
+        # Every Step 6 preset ends at today, so a future expense would be
+        # invisible under all of them and the page would disagree with
+        # itself about what has been spent.
+        return values, "An expense cannot be dated in the future."
+
+    if len(description) > MAX_DESCRIPTION:
+        return values, ("Description must be %d characters or fewer."
+                        % MAX_DESCRIPTION)
+
+    # The parsed, normalised row — what the caller hands to the database.
+    values["amount"] = round(amount, 2)
+    values["date"] = parsed_date.isoformat()
+    # Empty means "no description", which the column stores as NULL. An
+    # empty string would render as a blank cell that looks like a bug.
+    values["description"] = description or None
+
+    return values, None
+
+
 @app.route("/profile")
 @login_required
 def profile():
@@ -337,6 +470,11 @@ def profile():
 
     date_filter = resolve_date_range(request.args)
     start, end = date_filter["start"], date_filter["end"]
+
+    # The first of "added", "updated", "deleted" that is present. Only the
+    # key is read from the URL; the sentence comes from NOTICES.
+    notice = next((text for key, text in NOTICES.items()
+                   if key in request.args), None)
 
     # Four independent reads rather than one joined query: each answers a
     # different section of the page, and a join would have to fan the
@@ -355,6 +493,7 @@ def profile():
         category_icons=CATEGORY_ICONS,
         date_filter=date_filter,
         filter_presets=FILTER_PRESETS,
+        notice=notice,
         # Short-circuited: the extra query only runs when the range came
         # back empty, which is the only time the two empty states differ.
         has_expenses=bool(stats["transaction_count"])
@@ -363,25 +502,92 @@ def profile():
 
 
 # ------------------------------------------------------------------ #
-# Placeholder routes — students will implement these                  #
+# Expense routes                                                      #
 # ------------------------------------------------------------------ #
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 @login_required
 def add_expense():
-    return "Add expense — coming in Step 7"
+    action = url_for("add_expense")
 
+    if request.method == "GET":
+        # Today is the overwhelmingly common answer, and the only value
+        # the date input can be pre-filled with that is certain to pass
+        # validation.
+        blank = {"amount": "", "category": "", "description": "",
+                 "date": date.today().isoformat()}
+        return render_expense_form(action, "Add an expense",
+                                   "Add expense", blank)
 
-@app.route("/expenses/<int:id>/edit")
+    values, error = validate_expense_form(request.form)
+
+    if error:
+        # values, not the empty form — nothing typed is lost to a mistake
+        # in one field.
+        return render_expense_form(action, "Add an expense",
+                                   "Add expense", values, error)
+
+    # The owner comes from the session. Reading it from the form would let
+    # anyone file expenses against somebody else's account.
+    create_expense(current_user()["id"], **values)
+
+    # POST/redirect/GET so a refresh cannot file the same expense twice.
+    return redirect(url_for("profile", added=1))
+
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    # Fetched before anything is parsed, so an id that is not the user's
+    # 404s without the form data ever being looked at.
+    expense = owned_expense_or_404(id)
+    action = url_for("edit_expense", id=id)
+
+    if request.method == "GET":
+        # "%.2f" so the field opens reading 12.50 rather than 12.5,
+        # matching the amount as the transaction table prints it.
+        return render_expense_form(action, "Edit expense", "Save changes", {
+            "amount": "%.2f" % expense["amount"],
+            "category": expense["category"],
+            "date": expense["date"],
+            "description": expense["description"],
+        })
+
+    values, error = validate_expense_form(request.form)
+
+    if error:
+        # The submitted values, not the stored ones — what the user is
+        # looking at is their unsaved edit, and re-rendering the database
+        # row would silently throw it away.
+        return render_expense_form(action, "Edit expense", "Save changes",
+                                   values, error)
+
+    if not update_expense(id, current_user()["id"], **values):
+        # Nothing matched, so the row went between opening the form and
+        # saving it. A confirmation banner here would be a lie.
+        abort(404)
+
+    return redirect(url_for("profile", updated=1))
 
 
-@app.route("/expenses/<int:id>/delete")
+@app.route("/expenses/<int:id>/delete", methods=["GET", "POST"])
 @login_required
 def delete_expense(id):
-    return "Delete expense — coming in Step 9"
+    expense = owned_expense_or_404(id)
+
+    if request.method == "GET":
+        # A confirmation page, and nothing else. Keeping GET as a real
+        # page is what lets the table action be a plain link with no
+        # JavaScript, while the destructive half stays POST-only.
+        return render_template("delete_expense.html", expense=expense,
+                               category_icons=CATEGORY_ICONS)
+
+    if not delete_expense_row(id, current_user()["id"]):
+        # Re-checked at the point of the write, not trusted from the page
+        # that led here — which is also what makes a double submit a 404
+        # rather than a second cheerful banner.
+        abort(404)
+
+    return redirect(url_for("profile", deleted=1))
 
 
 if __name__ == "__main__":

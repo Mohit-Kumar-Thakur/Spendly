@@ -1,0 +1,95 @@
+{# templates/expense_form.html
+
+   One template for both adding (Step 7) and editing (Step 8) an expense.
+   Everything that differs between the two arrives as a variable —
+   form_title, form_action, submit_label and the expense itself — so the
+   two steps cannot drift into two different forms. #}
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/expense-form.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="auth-section">
+    <div class="expense-form-container">
+
+        <div class="auth-header">
+            <h1 class="auth-title">{{ form_title }}</h1>
+            <p class="auth-subtitle">Every rupee, where it went.</p>
+        </div>
+
+        <div class="auth-card">
+            {% if error %}
+            <div class="auth-error">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST" action="{{ form_action }}">
+
+                <div class="form-group">
+                    <label for="amount">Amount</label>
+                    {# The symbol sits inside the field frame rather than in
+                       the label, so it reads as part of the number. #}
+                    <div class="expense-amount">
+                        <span class="expense-amount-symbol" aria-hidden="true">₹</span>
+                        <input type="text" id="amount" name="amount"
+                               class="form-input expense-amount-input"
+                               placeholder="0.00" inputmode="decimal"
+                               value="{{ expense['amount'] or '' }}"
+                               required autofocus>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {# A fieldset rather than a label: seven radios are one
+                       question, and a screen reader should hear it once. #}
+                    <fieldset class="expense-categories">
+                        <legend>Category</legend>
+                        <div class="expense-category-grid">
+                            {% for category in categories %}
+                            <input type="radio" class="expense-category-input"
+                                   id="category-{{ category|lower }}"
+                                   name="category" value="{{ category }}"
+                                   {% if expense['category'] == category %}checked{% endif %}
+                                   required>
+                            <label class="expense-category expense-category-{{ category|lower }}"
+                                   for="category-{{ category|lower }}">
+                                <i data-lucide="{{ category_icons[category] }}"></i>
+                                {{ category }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date"
+                           class="form-input"
+                           value="{{ expense['date'] or '' }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" name="description"
+                           class="form-input" placeholder="Optional — what was it for?"
+                           maxlength="200"
+                           value="{{ expense['description'] or '' }}">
+                </div>
+
+                <button type="submit" class="btn-submit">{{ submit_label }}</button>
+            </form>
+        </div>
+
+        <p class="auth-switch">
+            <a href="{{ url_for('profile') }}">Cancel and go back</a>
+        </p>
+
+    </div>
+</section>
+
+{% endblock %}

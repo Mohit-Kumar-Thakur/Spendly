@@ -146,6 +146,107 @@ def create_user(name, email, password):
         conn.close()
 
 
+def create_expense(user_id, amount, category, date, description=None):
+    """Insert one expense and return its new id.
+
+    Nothing is validated here on purpose. The view owns the rules about
+    what an amount or a category may be, and a second, invisible rulebook
+    in the data layer would be one more place for them to disagree.
+
+    created_at is left to the schema default so it always means "when
+    this was first recorded", which Step 8's update relies on.
+
+    Raises sqlite3.IntegrityError for a user_id that does not exist —
+    get_db() turns foreign keys on per connection, so an orphan expense
+    cannot be written even by a caller that forgot to check.
+    """
+    conn = get_db()
+    try:
+        with conn:
+            cursor = conn.execute(
+                """INSERT INTO expenses (user_id, amount, category, date, description)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (user_id, amount, category, date, description),
+            )
+        return cursor.lastrowid
+    finally:
+        conn.close()
+
+
+def get_expense(expense_id, user_id):
+    """Return one expense belonging to this user, or None.
+
+    user_id is in the WHERE clause, not checked afterwards in Python.
+    That is what makes "no such expense" and "not yours" the same answer:
+    the caller cannot tell them apart, so nobody can count another user's
+    records by trying ids.
+    """
+    conn = get_db()
+    try:
+        return conn.execute(
+            """SELECT id, amount, category, date, description
+                 FROM expenses
+                WHERE id = ? AND user_id = ?""",
+            (expense_id, user_id),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def update_expense(expense_id, user_id, amount, category, date, description):
+    """Overwrite the four editable columns. True if a row changed.
+
+    Carries the same doubled WHERE as get_expense, because this is the
+    statement that actually enforces ownership — the check the view did
+    before rendering the form only decided which page to show, and the
+    row may have gone since.
+
+    id, user_id and created_at are not in the SET list: created_at means
+    when the expense was first recorded, and an edit is not a new record.
+
+    Returns False rather than raising when nothing matched, so the caller
+    can answer a stale form with a 404 instead of a false confirmation.
+    """
+    conn = get_db()
+    try:
+        with conn:
+            cursor = conn.execute(
+                """UPDATE expenses
+                      SET amount = ?, category = ?, date = ?, description = ?
+                    WHERE id = ? AND user_id = ?""",
+                (amount, category, date, description, expense_id, user_id),
+            )
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
+def delete_expense(expense_id, user_id):
+    """Remove one of this user's expenses. True if a row went.
+
+    Both parameters are required and both are in the WHERE clause. A
+    default on user_id would make delete_expense(some_id) a statement
+    that quietly works and removes somebody else's row, which is the one
+    mistake in this module that cannot be undone.
+
+    The row is removed outright rather than flagged. A soft delete would
+    mean every read in database/queries.py growing a filter it does not
+    have, and the confirmation page is the safeguard this project's scope
+    calls for.
+    """
+    conn = get_db()
+    try:
+        with conn:
+            cursor = conn.execute(
+                """DELETE FROM expenses
+                    WHERE id = ? AND user_id = ?""",
+                (expense_id, user_id),
+            )
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
 def get_user_by_id(user_id):
     """Return the user row for this id, or None.
 
