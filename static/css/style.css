@@ -301,6 +301,21 @@ a { color: inherit; text-decoration: none; }
 
 .btn-primary:hover { background: var(--accent); }
 
+/* A compact .btn-primary for sitting beside a section heading rather
+   than in a hero. Same colour, smaller box, room for one icon. */
+.btn-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.8125rem;
+}
+
+.btn-sm svg {
+    width: 16px;
+    height: 16px;
+}
+
 .btn-ghost {
     display: inline-block;
     background: transparent;

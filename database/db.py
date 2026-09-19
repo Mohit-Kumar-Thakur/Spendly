@@ -146,6 +146,33 @@ def create_user(name, email, password):
         conn.close()
 
 
+def create_expense(user_id, amount, category, date, description=None):
+    """Insert one expense and return its new id.
+
+    Nothing is validated here on purpose. The view owns the rules about
+    what an amount or a category may be, and a second, invisible rulebook
+    in the data layer would be one more place for them to disagree.
+
+    created_at is left to the schema default so it always means "when
+    this was first recorded", which Step 8's update relies on.
+
+    Raises sqlite3.IntegrityError for a user_id that does not exist —
+    get_db() turns foreign keys on per connection, so an orphan expense
+    cannot be written even by a caller that forgot to check.
+    """
+    conn = get_db()
+    try:
+        with conn:
+            cursor = conn.execute(
+                """INSERT INTO expenses (user_id, amount, category, date, description)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (user_id, amount, category, date, description),
+            )
+        return cursor.lastrowid
+    finally:
+        conn.close()
+
+
 def get_user_by_id(user_id):
     """Return the user row for this id, or None.
 

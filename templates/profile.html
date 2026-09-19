@@ -62,6 +62,13 @@
             </div>
         </div>
 
+        {% if notice %}
+        <p class="profile-notice" role="status">
+            <i data-lucide="check-circle"></i>
+            {{ notice }}
+        </p>
+        {% endif %}
+
         <section class="profile-filter" aria-label="Filter by date">
             <div class="profile-filter-presets">
                 {% for key, label in filter_presets %}
@@ -94,10 +101,16 @@
         </section>
 
         <section class="profile-block">
-            <h2 class="profile-heading">
-                <i data-lucide="history"></i>
-                Transaction history
-            </h2>
+            <div class="profile-block-head">
+                <h2 class="profile-heading">
+                    <i data-lucide="history"></i>
+                    Transaction history
+                </h2>
+                <a class="btn-primary btn-sm" href="{{ url_for('add_expense') }}">
+                    <i data-lucide="plus"></i>
+                    Add expense
+                </a>
+            </div>
             <div class="profile-txn-wrap">
                 <table class="profile-txn-table">
                     <thead>
@@ -115,7 +128,8 @@
                                 {% if has_expenses %}
                                 No expenses in {{ date_filter["label"] }}.
                                 {% else %}
-                                Nothing here yet — your expenses will appear once you add one.
+                                Nothing here yet —
+                                <a class="profile-empty-link" href="{{ url_for('add_expense') }}">add your first expense</a>.
                                 {% endif %}
                             </td>
                         </tr>

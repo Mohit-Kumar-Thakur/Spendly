@@ -115,9 +115,10 @@ def test_guarded_routes_are_reachable_when_logged_in(client):
 
 
 def test_expense_placeholders_still_say_coming_soon(client):
+    """Only the steps that are still unbuilt. Step 7 replaced its own."""
     login(client)
 
-    assert b"coming in Step 7" in client.get("/expenses/add").data
+    assert b"Add an expense" in client.get("/expenses/add").data
     assert b"coming in Step 8" in client.get("/expenses/1/edit").data
     assert b"coming in Step 9" in client.get("/expenses/1/delete").data
 
