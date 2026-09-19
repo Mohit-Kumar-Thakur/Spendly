@@ -11,8 +11,10 @@ import sqlite3
 from werkzeug.security import generate_password_hash
 
 # The database lives next to app.py, at the project root, so this works
-# regardless of the directory the app is started from.
-DB_PATH = os.path.join(
+# regardless of the directory the app is started from. DB_PATH in the
+# environment overrides it, which is what lets a deployment point the file
+# at a mounted volume instead of the container's own disk.
+DB_PATH = os.environ.get("DB_PATH") or os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "expense_tracker.db",
 )

@@ -8,6 +8,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-stdlib-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-D97757?style=for-the-badge)
+![Status](https://img.shields.io/badge/status-complete-2EA44F?style=for-the-badge)
 
 **A personal expense tracker built with Flask and SQLite — and an excuse to learn Claude Code properly.**
 
@@ -233,6 +234,8 @@ never change.
 | **Frontend** | Plain HTML + CSS + vanilla JS | No build step, nothing hidden |
 | **Passwords** | `werkzeug.security` | Already a Flask dependency |
 | **Tests** | pytest + pytest-flask | — |
+| **Prod server** | gunicorn | `flask run` is a development server and says so |
+| **Hosting** | Railway | Reads the `Procfile`, no config file needed |
 
 </div>
 
@@ -256,9 +259,72 @@ Spendly/
 ├── .claude/
 │   └── specs/                  # 📌 one spec per step — the source of truth
 ├── .github/assets/             # the animated art in this README
+├── Procfile                    # gunicorn entry point for deployment
 ├── requirements.txt
 └── expense_tracker.db          # created on first run (gitignored)
 ```
+
+---
+
+## 🚀 Deployment
+
+> **Status — configured, deliberately not deployed. There is no public URL.**
+>
+> The app is deployment-ready and boots correctly under gunicorn. It was not shipped because
+> Railway's free trial has ended and hosting it now requires a paid plan — not worth it for a
+> practice project whose goal was the build loop, not running a service. Everything needed to
+> deploy is in the repo, so `railway up` is the only remaining step if that ever changes.
+
+<details open>
+<summary><b>What makes it deployable</b></summary>
+
+<br>
+
+| Piece | Why it's needed |
+| :--- | :--- |
+| `Procfile` | `web: gunicorn app:app --bind 0.0.0.0:$PORT` — without it the platform runs `python app.py`, which binds port 5001 on localhost with `debug=True` and is unreachable from outside |
+| `gunicorn` in `requirements.txt` | The production WSGI server that actually serves the app |
+| `SECRET_KEY` env var | **Required.** See below |
+| `DB_PATH` env var | Optional override for the SQLite file location |
+
+</details>
+
+<details>
+<summary><b>🔐 SECRET_KEY is mandatory in a deployment</b></summary>
+
+<br>
+
+Session cookies are signed with `app.secret_key`. The development fallback is written down in
+`app.py`, so anything using it would let a stranger forge a cookie and sign in as any user.
+
+A deployed environment that doesn't set `SECRET_KEY` therefore refuses to start:
+
+```
+RuntimeError: SECRET_KEY must be set in the environment when deployed.
+```
+
+Local runs and the test suite keep the fallback, so nothing changes day to day. Generate a real
+one with:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+</details>
+
+<details>
+<summary><b>⚠️ The database resets on every redeploy</b></summary>
+
+<br>
+
+The container filesystem is ephemeral and `expense_tracker.db` is gitignored, so each deploy
+starts from `seed_db()` alone — every account and expense created on the live site is gone.
+
+This is a deliberate trade-off. Spendly is a practice project, and the point is the build loop,
+not running a service anyone depends on. Making data survive would mean a mounted volume or a
+move to Postgres; neither is worth it here.
+
+</details>
 
 ---
 
@@ -282,6 +348,10 @@ Spendly/
 
 All nine steps are in. The placeholder routes that stood in `app.py` from commit one — so the
 shape of the finished app was visible before any of it worked — are now the real thing.
+
+**This project is complete.** Nine specs, nine plans, nine branches, nine pull requests, and 202
+passing tests. The loop at the top of this README is the thing I was actually here to learn, and
+it held all the way through. Spendly runs locally; it was never meant to run anywhere else.
 
 <details>
 <summary><b>✅ Step 1 — what "done" actually meant</b></summary>
@@ -503,8 +573,12 @@ safeguard this project's scope calls for.
 ## ⚠️ Scope
 
 This is a **learning project**, not production software. The dev server runs in debug mode,
-there's no CSRF protection or rate limiting yet, and the demo credentials are committed on
-purpose. Please don't deploy it anywhere that matters.
+there's no CSRF protection or rate limiting, and the demo credentials are committed on purpose.
+Please don't deploy it anywhere that matters.
+
+It is also **finished**. There is no live instance and no further steps planned — clone it and
+run it locally if you want to look around. What's worth reading is `.claude/specs/` and the
+commit history, not the app.
 
 <div align="center">
 
