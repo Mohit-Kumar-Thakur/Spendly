@@ -8,6 +8,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-stdlib-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-D97757?style=for-the-badge)
+![Status](https://img.shields.io/badge/status-complete-2EA44F?style=for-the-badge)
 
 **A personal expense tracker built with Flask and SQLite — and an excuse to learn Claude Code properly.**
 
@@ -267,8 +268,12 @@ Spendly/
 
 ## 🚀 Deployment
 
-> **Status — not yet live.** The app is configured for Railway and boots correctly under
-> gunicorn, but no public deployment exists yet. The live URL goes here once it does.
+> **Status — configured, deliberately not deployed. There is no public URL.**
+>
+> The app is deployment-ready and boots correctly under gunicorn. It was not shipped because
+> Railway's free trial has ended and hosting it now requires a paid plan — not worth it for a
+> practice project whose goal was the build loop, not running a service. Everything needed to
+> deploy is in the repo, so `railway up` is the only remaining step if that ever changes.
 
 <details open>
 <summary><b>What makes it deployable</b></summary>
@@ -343,6 +348,10 @@ move to Postgres; neither is worth it here.
 
 All nine steps are in. The placeholder routes that stood in `app.py` from commit one — so the
 shape of the finished app was visible before any of it worked — are now the real thing.
+
+**This project is complete.** Nine specs, nine plans, nine branches, nine pull requests, and 202
+passing tests. The loop at the top of this README is the thing I was actually here to learn, and
+it held all the way through. Spendly runs locally; it was never meant to run anywhere else.
 
 <details>
 <summary><b>✅ Step 1 — what "done" actually meant</b></summary>
@@ -564,8 +573,12 @@ safeguard this project's scope calls for.
 ## ⚠️ Scope
 
 This is a **learning project**, not production software. The dev server runs in debug mode,
-there's no CSRF protection or rate limiting yet, and the demo credentials are committed on
-purpose. Please don't deploy it anywhere that matters.
+there's no CSRF protection or rate limiting, and the demo credentials are committed on purpose.
+Please don't deploy it anywhere that matters.
+
+It is also **finished**. There is no live instance and no further steps planned — clone it and
+run it locally if you want to look around. What's worth reading is `.claude/specs/` and the
+commit history, not the app.
 
 <div align="center">
 
