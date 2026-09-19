@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 96" width="900" height="96" role="img" aria-label="Build progress: 5 of 9 steps complete">
-  <title>Build progress: 5 of 9 steps complete</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 96" width="900" height="96" role="img" aria-label="Build progress: 9 of 9 steps complete">
+  <title>Build progress: 9 of 9 steps complete</title>
   <defs>
     <linearGradient id="fill" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#0F766E"/>
@@ -11,12 +11,12 @@
 
   <text x="24" y="34" font-family="DM Sans, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" fill="#8FA3C0">Build progress</text>
   <text x="876" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="15" fill="#34D399" text-anchor="end">
-    5 / 9 steps
+    9 / 9 steps
   </text>
 
   <rect x="24" y="48" width="852" height="18" rx="9" fill="#172336"/>
   <rect x="24" y="48" width="0" height="18" rx="9" fill="url(#fill)">
-    <animate attributeName="width" from="0" to="472" dur="1.6s" begin="0.3s" fill="freeze"/>
+    <animate attributeName="width" from="0" to="852" dur="1.6s" begin="0.3s" fill="freeze"/>
   </rect>
 
   <g fill="#0B1220">
@@ -30,8 +30,5 @@
     <rect x="779" y="48" width="2" height="18"/>
   </g>
 
-  <circle cx="497" cy="57" r="5" fill="#34D399" opacity="0">
-    <animate attributeName="opacity" values="0;1" dur="0.4s" begin="1.9s" fill="freeze"/>
-    <animate attributeName="r" values="5;11;5" dur="2s" begin="1.9s" repeatCount="indefinite"/>
-  </circle>
+  <!-- The pulsing "you are here" marker is gone: there is no next step. -->
 </svg>

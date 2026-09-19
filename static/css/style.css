@@ -513,6 +513,21 @@ a { color: inherit; text-decoration: none; }
 
 .btn-submit:hover { background: var(--accent); }
 
+/* The destructive counterpart to .btn-submit, for the one action in the
+   app that cannot be undone. Modifier, not a separate button: it should
+   sit exactly where a confirm button sits, only in the danger colour. */
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--danger);
+}
+
+.btn-danger:hover { background: var(--ink); }
+
+.btn-danger svg { width: 16px; height: 16px; }
+
 .auth-switch {
     text-align: center;
     font-size: 0.875rem;

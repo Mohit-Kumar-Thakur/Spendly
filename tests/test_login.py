@@ -114,13 +114,13 @@ def test_guarded_routes_are_reachable_when_logged_in(client):
         assert response.status_code == 200, path
 
 
-def test_expense_placeholders_still_say_coming_soon(client):
-    """Only the steps that are still unbuilt. Step 7 replaced its own."""
+def test_the_expense_routes_are_all_real_pages_now(client):
+    """Steps 7, 8 and 9 each replaced their own placeholder string."""
     login(client)
 
     assert b"Add an expense" in client.get("/expenses/add").data
     assert b"Edit expense" in client.get("/expenses/1/edit").data
-    assert b"coming in Step 9" in client.get("/expenses/1/delete").data
+    assert b"Delete this expense?" in client.get("/expenses/1/delete").data
 
 
 # ------------------------------------------------------------------ #

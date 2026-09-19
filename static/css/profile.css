@@ -417,6 +417,12 @@ td.profile-txn-amount {
     height: 14px;
 }
 
+/* Same weight as Edit until it is reached. A red link in all eight rows
+   would be the loudest thing in a table about money. */
+.profile-txn-actions a.profile-txn-action-danger:hover {
+    color: var(--danger);
+}
+
 /* ---- Category breakdown ---- */
 
 .profile-breakdown {

@@ -155,6 +155,12 @@
                                     <i data-lucide="pencil"></i>
                                     Edit
                                 </a>
+                                <a class="profile-txn-action-danger"
+                                   href="{{ url_for('delete_expense', id=expense['id']) }}"
+                                   aria-label="Delete {{ expense['description'] or expense['category'] }}">
+                                    <i data-lucide="trash-2"></i>
+                                    Delete
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}

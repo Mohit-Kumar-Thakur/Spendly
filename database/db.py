@@ -221,6 +221,32 @@ def update_expense(expense_id, user_id, amount, category, date, description):
         conn.close()
 
 
+def delete_expense(expense_id, user_id):
+    """Remove one of this user's expenses. True if a row went.
+
+    Both parameters are required and both are in the WHERE clause. A
+    default on user_id would make delete_expense(some_id) a statement
+    that quietly works and removes somebody else's row, which is the one
+    mistake in this module that cannot be undone.
+
+    The row is removed outright rather than flagged. A soft delete would
+    mean every read in database/queries.py growing a filter it does not
+    have, and the confirmation page is the safeguard this project's scope
+    calls for.
+    """
+    conn = get_db()
+    try:
+        with conn:
+            cursor = conn.execute(
+                """DELETE FROM expenses
+                    WHERE id = ? AND user_id = ?""",
+                (expense_id, user_id),
+            )
+        return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
 def get_user_by_id(user_id):
     """Return the user row for this id, or None.
 

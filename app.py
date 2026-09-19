@@ -22,6 +22,9 @@ from database.db import (
     create_user,
     get_db,
     get_expense,
+    # Aliased: the view below is also called delete_expense, and the
+    # endpoint name is what url_for() in the templates already uses.
+    delete_expense as delete_expense_row,
     get_user_by_email,
     get_user_by_id,
     init_db,
@@ -350,6 +353,7 @@ MAX_DESCRIPTION = 200
 NOTICES = {
     "added": "Expense added.",
     "updated": "Expense updated.",
+    "deleted": "Expense deleted.",
 }
 
 
@@ -565,14 +569,25 @@ def edit_expense(id):
     return redirect(url_for("profile", updated=1))
 
 
-# ------------------------------------------------------------------ #
-# Placeholder routes — students will implement these                  #
-# ------------------------------------------------------------------ #
-
-@app.route("/expenses/<int:id>/delete")
+@app.route("/expenses/<int:id>/delete", methods=["GET", "POST"])
 @login_required
 def delete_expense(id):
-    return "Delete expense — coming in Step 9"
+    expense = owned_expense_or_404(id)
+
+    if request.method == "GET":
+        # A confirmation page, and nothing else. Keeping GET as a real
+        # page is what lets the table action be a plain link with no
+        # JavaScript, while the destructive half stays POST-only.
+        return render_template("delete_expense.html", expense=expense,
+                               category_icons=CATEGORY_ICONS)
+
+    if not delete_expense_row(id, current_user()["id"]):
+        # Re-checked at the point of the write, not trusted from the page
+        # that led here — which is also what makes a double submit a 404
+        # rather than a second cheerful banner.
+        abort(404)
+
+    return redirect(url_for("profile", deleted=1))
 
 
 if __name__ == "__main__":
